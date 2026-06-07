@@ -276,6 +276,43 @@ which the policy code already reacts to.
 
 ## 10. Worked examples (end-to-end flows)
 
+A representative session — first run, browse, bookmark, open detail, get directions —
+and how it threads through the UI, `App.js`, the local DB, and native APIs:
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant UI as Screens (UI)
+    participant A as App.js
+    participant DB as db.js (AsyncStorage)
+    participant OS as Native (Haptics / Maps)
+
+    U->>UI: launch app
+    UI->>A: render — granted?
+    A-->>UI: Permission screen
+    U->>UI: tap "While Using"
+    UI->>A: onGranted("precise")
+    A->>DB: save(prefs.locationMode)
+    A-->>UI: Nearby (cached events + freshness chip)
+
+    U->>UI: tap bookmark on a card
+    UI->>A: actions.toggleBookmark(id)
+    A->>OS: Haptics.impact(light)
+    A->>A: bookmarks.add(id) + show Toast
+    A->>DB: save(bookmarks)
+    A-->>UI: Saved tab count updates
+
+    U->>UI: tap an event
+    UI->>A: actions.openDetail(id)
+    A-->>UI: Detail screen
+    U->>UI: Directions → Google Maps
+    UI->>OS: Linking.openURL(deep link)
+
+    U->>UI: back
+    UI->>A: actions.back()
+    A-->>UI: Nearby
+```
+
 **Cold start (empty cache).** App hydrates from `db.js` → no cache → `doRefresh()` →
 skeletons show → `fakeFetchEvents` resolves after ~1 s → `cache` set with
 `fetched_at = now` → Nearby renders cards → cache persisted to AsyncStorage.
