@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Screen from "../components/Screen";
+import BrandHeader from "../components/BrandHeader";
 import AppHeader from "../components/AppHeader";
 import EventCard from "../components/EventCard";
 import SkeletonCard from "../components/SkeletonCard";
@@ -34,6 +35,7 @@ export default function NearbyScreen({ state, actions }) {
 
   return (
     <Screen>
+      <BrandHeader />
       <AppHeader
         city={city}
         freshness={freshness}
