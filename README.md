@@ -11,7 +11,7 @@ SwiftUI architecture. This repo recreates that design pixel-for-pixel in React N
 so it runs on a real device via Expo.
 
 > **Architecture:** see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a full
-> walkthrough of the layers, state/data flow, and how each file fits together.
+> walkthrough of the layers, Architecture and Sequence Diagrams, and how each file fits together.
 > **Tests:** see [`docs/Unit-Tests.md`](docs/Unit-Tests.md) (`npm test`).
 
 ## Features
