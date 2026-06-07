@@ -10,6 +10,30 @@ The original handoff was a high-fidelity HTML/React prototype documenting an iOS
 SwiftUI architecture. This repo recreates that design pixel-for-pixel in React Native
 so it runs on a real device via Expo.
 
+## Features
+
+Core (from the brief): list nearby events, bookmark them ("Saved" tab, persisted to
+the local DB), event detail, distance-to-event from the device location, deep-link to
+a maps app for directions, image + API-response caching, background refresh, graceful
+network-failure handling.
+
+**Beyond the initial brief** — these weren't in the original written description; most
+came with the design prototype and are kept because they make the demo realistic:
+
+- **Category filter** — horizontal chips on the Nearby screen (All / Live music /
+  Market / Workshop / Sports / Comedy / Art) filter the list client-side.
+- **Freshness chip** — header pill showing cache state + age (Live · 2m / Stale / Offline).
+- **Light / Dark theme.**
+- **Tweaks panel** — a developer overlay to drive every engineering state (see below);
+  not a shipping feature, it exists so the architecture is reviewable.
+- **Map tab** — abstract map with price pins and a "you are here" marker.
+- **Event images** — each event carries an `image_url` rendered via `expo-image`
+  (added per review request; the original prototype used striped placeholders).
+
+Device location is **mimicked** at 1 Mt Pleasant Rd, Toronto (`src/location.js`) for
+the Expo demo — that file is the seam where production would read the real coordinate
+from the native location API.
+
 ## Run it
 
 ```bash
@@ -17,8 +41,9 @@ npm install
 npx expo start
 ```
 
-Then press `i` for the iOS simulator, `a` for Android, or scan the QR code with
-**Expo Go** on your phone.
+Then scan the QR with **Expo Go** on your phone (works on iOS and Android — same
+JS bundle). `a` opens an Android emulator and `i` opens the iOS simulator if you have
+the respective SDK installed (the iOS simulator requires full Xcode).
 
 ## Tweaks (engineering states)
 
@@ -47,6 +72,8 @@ sheet — the same panel from the prototype:
 | Gradients    | CSS radial gradients   | `react-native-svg` (`ScreenBackground`, `ImgPlaceholder`) |
 | Icons        | inline SVG             | `react-native-svg` (`src/icons.js`)           |
 | Maps links   | `window.__toast`       | `Linking.openURL` (Apple / Google / Waze)     |
+| Event images | striped placeholders   | `expo-image` w/ memory+disk cache (`src/components/EventImage.js`) |
+| Location     | `"Mission, SF"` string | mimicked device fix + Haversine distance (`src/location.js`) |
 | Haptics      | —                      | `expo-haptics` on bookmark toggle             |
 | Colors       | `oklch(...)`           | converted to hex/rgba by `gen-theme.js` → `src/theme.js` |
 
@@ -68,6 +95,8 @@ background refresh runs every 30s while foregrounded (≈30 min in production).
 ## Out of scope (matches the original brief)
 
 - Real map tiles (abstract SVG streets stand in — MapKit in production).
-- Real photos (striped placeholders, by design).
-- Real location services (the permission flow is the prototype's simulated alert).
+- Real location services — the device fix is mimicked at 1 Mt Pleasant Rd, Toronto,
+  and the permission flow is the prototype's simulated alert (no live GPS / OS prompt).
+- User-uploaded photos — event images are stock (Unsplash) referenced by URL; there's
+  no upload pipeline.
 - Auth, push, payments, analytics, i18n beyond locale date/number formatting.
