@@ -14,3 +14,15 @@ export function fakeFetchEvents({ online, errorRate = 0 }) {
     }, 700 + Math.random() * 400);
   });
 }
+
+// Pure cache-policy helpers (the stale-while-revalidate math), extracted so the
+// freshness decision is testable in isolation. `fetchedAtSec`/`nowSec` are epoch
+// seconds; a missing or future fetch time clamps the age to 0.
+export function cacheAgeSeconds(fetchedAtSec, nowSec) {
+  if (!fetchedAtSec) return 0;
+  return Math.max(0, Math.floor(nowSec - fetchedAtSec));
+}
+
+export function cacheFreshness(fetchedAtSec, nowSec) {
+  return cacheAgeSeconds(fetchedAtSec, nowSec) < CACHE_TTL_SEC ? "fresh" : "stale";
+}

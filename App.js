@@ -18,7 +18,7 @@ import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from "@expo-google-
 
 import { ThemeProvider, useTheme } from "./src/ThemeContext";
 import { DB } from "./src/db";
-import { fakeFetchEvents, CACHE_TTL_SEC } from "./src/api";
+import { fakeFetchEvents, CACHE_TTL_SEC, cacheAgeSeconds, cacheFreshness } from "./src/api";
 import { MOCK_EVENTS } from "./src/data";
 import { Icons } from "./src/icons";
 
@@ -127,8 +127,8 @@ function Shell() {
     return () => clearInterval(i);
   }, []);
 
-  const cacheAgeSec = cache?.fetched_at ? Math.max(0, Math.floor(now - cache.fetched_at)) : 0;
-  const freshness = cacheAgeSec < CACHE_TTL_SEC ? "fresh" : "stale";
+  const cacheAgeSec = cacheAgeSeconds(cache?.fetched_at, now);
+  const freshness = cacheFreshness(cache?.fetched_at, now);
   const events = cache?.events || [];
 
   // Background refresh — every 30s in the prototype, ~30m in production.
