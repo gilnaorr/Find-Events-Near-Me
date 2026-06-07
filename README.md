@@ -30,9 +30,10 @@ came with the design prototype and are kept because they make the demo realistic
 - **Event images** — each event carries an `image_url` rendered via `expo-image`
   (added per review request; the original prototype used striped placeholders).
 
-Device location is **mimicked** at 1 Mt Pleasant Rd, Toronto (`src/location.js`) for
-the Expo demo — that file is the seam where production would read the real coordinate
-from the native location API.
+Location uses the device's **native location API** to position the user and compute
+the distance to each event. For the Expo demo the API's response is mocked with sample
+data (`src/location.js`); that file is the single seam where the live native coordinate
+drops in.
 
 ## Run it
 
@@ -73,7 +74,7 @@ sheet — the same panel from the prototype:
 | Icons        | inline SVG             | `react-native-svg` (`src/icons.js`)           |
 | Maps links   | `window.__toast`       | `Linking.openURL` (Apple / Google / Waze)     |
 | Event images | striped placeholders   | `expo-image` w/ memory+disk cache (`src/components/EventImage.js`) |
-| Location     | `"Mission, SF"` string | mimicked device fix + Haversine distance (`src/location.js`) |
+| Location     | `"Mission, SF"` string | native location API (mocked for demo) + Haversine distance (`src/location.js`) |
 | Haptics      | —                      | `expo-haptics` on bookmark toggle             |
 | Colors       | `oklch(...)`           | converted to hex/rgba by `gen-theme.js` → `src/theme.js` |
 
@@ -95,8 +96,8 @@ background refresh runs every 30s while foregrounded (≈30 min in production).
 ## Out of scope (matches the original brief)
 
 - Real map tiles (abstract SVG streets stand in — MapKit in production).
-- Real location services — the device fix is mimicked at 1 Mt Pleasant Rd, Toronto,
-  and the permission flow is the prototype's simulated alert (no live GPS / OS prompt).
+- Live GPS / OS location prompt — the native location API's response is mocked with
+  sample data for the demo, and the in-app permission screen is a simulated alert.
 - User-uploaded photos — event images are stock (Unsplash) referenced by URL; there's
   no upload pipeline.
 - Auth, push, payments, analytics, i18n beyond locale date/number formatting.
