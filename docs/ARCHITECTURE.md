@@ -36,6 +36,35 @@ it owns all app state, runs the cache-then-network policy, and passes a read-onl
 `state` object and an `actions` object down to each screen. Screens are otherwise
 presentational.
 
+### Data-flow diagram
+
+```mermaid
+flowchart TD
+    User([User]) -->|"taps · scrolls · toggles"| Screens["Screens and Components<br/>Nearby · Detail · Map · Saved · Settings"]
+    Tweaks["Tweaks panel<br/>engineering states"] --> App
+    Screens -->|"actions()"| App["App.js shell<br/>state · cache policy · navigation"]
+    App -->|"state snapshot"| Screens
+    App <-->|"load / save<br/>bookmarks · cache · prefs"| DB[("db.js<br/>AsyncStorage")]
+    App -->|"fetch(online, errorRate)"| API["api.js<br/>network stub"]
+    API -->|"events + server_time"| App
+    Data["data.js<br/>mock events + image_url"] --> API
+    App -->|"getDeviceLocation()"| Loc["location.js<br/>device location (mocked)"]
+    Loc -->|"distanceFromDevice()"| Data
+    Screens -->|"image_url"| Img["expo-image<br/>memory + disk cache"]
+    Img -->|"GET"| CDN[("Image CDN")]
+
+    classDef shell fill:#e2684a,stroke:#cf4040,color:#fff;
+    classDef io fill:#f3eee7,stroke:#cbb9a6,color:#2b2722;
+    class App shell;
+    class DB,API,Data,Loc,Img io;
+```
+
+The arrows are the actual data paths: user input becomes `actions` on `App.js`;
+`App.js` reads/writes the local DB, calls the network stub, asks `location.js` for the
+device coordinate (which `data.js` uses to derive each event's distance), and pushes a
+read-only `state` snapshot back to the screens. Images flow separately from the cards
+straight through `expo-image`'s cache.
+
 ---
 
 ## 2. Directory map (what owns what)
@@ -149,6 +178,32 @@ freshness = (now - cache.fetched_at) < TTL ? "fresh" : "stale"
   fresh   → show cached data, no network
   stale   → show cached data AND refresh in the background
   empty   → fetch; show skeleton cells until data arrives
+```
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant A as App.js (policy)
+    participant DB as db.js (AsyncStorage)
+    participant API as api.js (network)
+    U->>A: launch / open Nearby
+    A->>DB: load()
+    DB-->>A: { bookmarks, cache, prefs }
+    alt cache fresh (age < 15m TTL)
+        A-->>U: render cached events — chip "Live"
+    else cache stale
+        A-->>U: render cached events — chip "Stale"
+        A->>API: fakeFetchEvents()
+        API-->>A: events + server_time
+        A->>DB: save(cache)
+        A-->>U: refresh in place — chip "Live"
+    else cache empty
+        A-->>U: skeleton cells
+        A->>API: fakeFetchEvents()
+        API-->>A: events + server_time
+        A->>DB: save(cache)
+        A-->>U: render events
+    end
 ```
 
 The header **freshness chip** (Live · 2m / Stale / Offline) tells the user which
