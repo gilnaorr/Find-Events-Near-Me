@@ -20,7 +20,6 @@ import { ThemeProvider, useTheme } from "./src/ThemeContext";
 import { DB } from "./src/db";
 import { fakeFetchEvents, CACHE_TTL_SEC } from "./src/api";
 import { MOCK_EVENTS } from "./src/data";
-import { DEVICE_LOCATION } from "./src/location";
 import { Icons } from "./src/icons";
 
 import TabBar from "./src/components/TabBar";
@@ -188,7 +187,7 @@ function Shell() {
 
   const sharedState = {
     events, online, freshness, cacheAgeSec, refreshing, fetchError,
-    bookmarks, city: DEVICE_LOCATION.area,
+    bookmarks, city: "Current location",
     lowDataMode: prefs.lowDataMode, bgRefresh: prefs.bgRefresh,
     notify: prefs.notify, locationMode: prefs.locationMode,
   };
