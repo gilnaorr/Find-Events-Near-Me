@@ -5,7 +5,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, Modal, Linking, Platform
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-import ImgPlaceholder from "../components/ImgPlaceholder";
+import EventImage from "../components/EventImage";
 import GlassButton from "../components/GlassButton";
 import Glass from "../components/Glass";
 import { Icons } from "../icons";
@@ -41,7 +41,7 @@ export default function DetailScreen({ event, saved, actions, showToast }) {
     <View style={{ flex: 1, backgroundColor: t.surface }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={styles.hero}>
-          <ImgPlaceholder hue={hue} />
+          <EventImage url={event.image_url} hue={hue} />
           <LinearGradient
             colors={["transparent", t.surface]}
             style={styles.heroFade}

@@ -6,10 +6,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, Pattern, Path, Rect, G, Text as SvgText } from "react-native-svg";
 import Glass from "../components/Glass";
 import GlassButton from "../components/GlassButton";
-import ImgPlaceholder from "../components/ImgPlaceholder";
+import EventImage from "../components/EventImage";
 import { Icons } from "../icons";
 import { useTheme } from "../ThemeContext";
 import { fonts, radius } from "../theme";
+import { DEVICE_LOCATION } from "../location";
 
 export default function MapScreen({ state, actions }) {
   const { events } = state;
@@ -20,8 +21,9 @@ export default function MapScreen({ state, actions }) {
 
   const bounds = useMemo(() => {
     if (!events.length) return { minLat: 0, maxLat: 1, minLng: 0, maxLng: 1 };
-    const lats = events.map((e) => e.lat);
-    const lngs = events.map((e) => e.lng);
+    // Include the device location so the "you are here" dot is always in frame.
+    const lats = [...events.map((e) => e.lat), DEVICE_LOCATION.lat];
+    const lngs = [...events.map((e) => e.lng), DEVICE_LOCATION.lng];
     return {
       minLat: Math.min(...lats) - 0.005, maxLat: Math.max(...lats) + 0.005,
       minLng: Math.min(...lngs) - 0.005, maxLng: Math.max(...lngs) + 0.005,
@@ -40,15 +42,18 @@ export default function MapScreen({ state, actions }) {
       <View style={styles.mapWrap} onLayout={(e) => setDim({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
         <MapCanvas w={dim.w} h={dim.h} />
 
-        {/* you-are-here */}
-        {dim.w > 0 && (
-          <View
-            style={[
-              styles.you,
-              { backgroundColor: t.youPin, left: dim.w * 0.52 - 11, top: dim.h * 0.55 - 11, borderColor: t.mapBase },
-            ]}
-          />
-        )}
+        {/* you-are-here — placed at the device location */}
+        {dim.w > 0 && (() => {
+          const me = pinPos(DEVICE_LOCATION.lat, DEVICE_LOCATION.lng);
+          return (
+            <View
+              style={[
+                styles.you,
+                { backgroundColor: t.youPin, left: me.x - 11, top: me.y - 11, borderColor: t.mapBase },
+              ]}
+            />
+          );
+        })()}
 
         {dim.w > 0 &&
           events.map((ev) => {
@@ -86,7 +91,7 @@ export default function MapScreen({ state, actions }) {
           <Pressable onPress={() => actions.openDetail(selEvent.id)} style={[styles.cardWrap, { bottom: 96 + insets.bottom }]}>
             <Glass strong radius={radius.lg} contentStyle={styles.card}>
               <View style={styles.cardImg}>
-                <ImgPlaceholder hue={35} />
+                <EventImage url={selEvent.image_url} hue={35} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={[styles.cardTitle, { color: t.ink }]} numberOfLines={1}>{selEvent.title}</Text>
@@ -119,10 +124,10 @@ function MapCanvas({ w, h }) {
       <Rect width="400" height="700" fill="url(#grid)" />
       {/* park */}
       <Rect x="60" y="380" width="120" height="90" fill={t.mapGreen} rx="3" />
-      <SvgText x="120" y="430" textAnchor="middle" fontSize="9" fill={t.mapGreenInk} fontFamily={fonts.mono}>DOLORES PARK</SvgText>
-      {/* water */}
+      <SvgText x="120" y="430" textAnchor="middle" fontSize="9" fill={t.mapGreenInk} fontFamily={fonts.mono}>ROSEDALE PARK</SvgText>
+      {/* Don Valley ravine on the east edge */}
       <Rect x="340" y="0" width="60" height="700" fill={t.mapWater} />
-      <SvgText x="370" y="120" textAnchor="middle" fontSize="9" fill={t.mapWaterInk} fontFamily={fonts.mono} transform="rotate(90 370 120)">SF BAY</SvgText>
+      <SvgText x="370" y="120" textAnchor="middle" fontSize="9" fill={t.mapWaterInk} fontFamily={fonts.mono} transform="rotate(90 370 120)">DON VALLEY</SvgText>
       {/* roads */}
       <G stroke={t.mapRoad} strokeWidth="6">
         <Path d="M0 200 L400 200" /><Path d="M0 320 L400 320" /><Path d="M0 480 L400 480" /><Path d="M0 600 L400 600" />
@@ -134,9 +139,9 @@ function MapCanvas({ w, h }) {
       </G>
       <Path d="M0 0 L 400 700" stroke={t.mapRoad} strokeWidth="5" />
       <Path d="M0 0 L 400 700" stroke={t.mapRoadEdge} strokeWidth="0.4" />
-      <SvgText x="200" y="195" fontSize="8" fill={t.mapStreetInk} fontFamily={fonts.mono} textAnchor="middle">16TH ST</SvgText>
-      <SvgText x="200" y="315" fontSize="8" fill={t.mapStreetInk} fontFamily={fonts.mono} textAnchor="middle">MISSION ST</SvgText>
-      <SvgText x="200" y="475" fontSize="8" fill={t.mapStreetInk} fontFamily={fonts.mono} textAnchor="middle">VALENCIA ST</SvgText>
+      <SvgText x="200" y="195" fontSize="8" fill={t.mapStreetInk} fontFamily={fonts.mono} textAnchor="middle">BLOOR ST</SvgText>
+      <SvgText x="200" y="315" fontSize="8" fill={t.mapStreetInk} fontFamily={fonts.mono} textAnchor="middle">WELLESLEY ST</SvgText>
+      <SvgText x="200" y="475" fontSize="8" fill={t.mapStreetInk} fontFamily={fonts.mono} textAnchor="middle">CARLTON ST</SvgText>
     </Svg>
   );
 }

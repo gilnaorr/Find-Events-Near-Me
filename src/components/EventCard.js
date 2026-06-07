@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import { BlurView } from "expo-blur";
-import ImgPlaceholder from "./ImgPlaceholder";
+import EventImage from "./EventImage";
 import GlassButton from "./GlassButton";
 import { Icons } from "../icons";
 import { useTheme } from "../ThemeContext";
@@ -33,7 +33,7 @@ export default function EventCard({ event, saved, onOpen, onToggleSave, loading 
       ]}
     >
       <View style={[styles.img, { backgroundColor: t.surface3 }]}>
-        <ImgPlaceholder hue={hue} loading={loading} />
+        <EventImage url={event.image_url} hue={hue} loading={loading} />
         {/* category pill */}
         <View style={styles.catPillWrap}>
           <BlurView intensity={30} tint={dark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
