@@ -10,6 +10,9 @@ The original handoff was a high-fidelity HTML/React prototype documenting an iOS
 SwiftUI architecture. This repo recreates that design pixel-for-pixel in React Native
 so it runs on a real device via Expo.
 
+> **Architecture:** see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a full
+> walkthrough of the layers, state/data flow, and how each file fits together.
+
 ## Features
 
 Core (from the brief): list nearby events, bookmark them ("Saved" tab, persisted to
