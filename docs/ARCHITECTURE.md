@@ -96,7 +96,7 @@ src/
     IOSSwitch.js               Settings toggle
     Toast.js                   Transient confirmation pill
   screens/
-    PermissionScreen.js        First-run location request (simulated iOS alert)
+    PermissionScreen.js        First-run primer → real OS location permission prompt
     NearbyScreen.js            Home: brand, header, filter chips, banners, list
     DetailScreen.js            Hero, fact grid, venue card, maps action sheet, CTA
     MapScreen.js               Real map (LeafletMap) + price pins, "you are here", card
@@ -115,13 +115,20 @@ is just state.
 
 **Persistent state** (survives restarts, written to AsyncStorage):
 - `bookmarks` — a `Set` of saved event ids.
-- `prefs` — `{ lowDataMode, bgRefresh, notify, locationMode }`.
+- `prefs` — `{ lowDataMode, bgRefresh, notify, locationMode, radiusMi }` (`radiusMi`
+  defaults to 40; the search radius).
 - `cache` — `{ events, fetched_at }` (the cached API response + when it landed).
 
 **Ephemeral state** (in-memory only):
-- `tab` (`nearby|map|saved|settings`), `openEventId`, `refreshing`, `fetchError`,
-  `now` (ticks every 5s so age chips update), `granted` (permission), `toast`,
-  `tweaksOpen`, and `tweaks` (the engineering-state panel values).
+- `tab` (`nearby|map|saved|settings` — labelled "Search Event / Map / My Events /
+  Profile settings" in the bottom bar), `openEventId`, `refreshing`, `fetchError`,
+  `now` (ticks every 5s so age chips update), `granted` (permission), `coords` (live
+  device location), `toast`, `tweaksOpen`, and `tweaks` (the engineering-state values).
+
+**Derived event lists.** From the cache, `App.js` derives `allEvents` (re-anchored to
+`coords`, see §6) and `events` = `allEvents` filtered to within `prefs.radiusMi`. The
+discovery surfaces (Search Event / Map) get the radius-filtered `events`; Saved and the
+detail view get `allEvents`, so bookmarks and an open event are never hidden by the radius.
 
 **Navigation** is a derived render: permission screen if `!granted`, else the detail
 screen if an event is open, else the active `tab`'s screen. The `TabBar` is a flex
@@ -261,7 +268,7 @@ The design is iOS-26 "Liquid Glass." Two pieces make that portable:
 
 Glass surfaces are built from **`Glass`** / **`GlassButton`** = `expo-blur` BlurView +
 a translucent tint + a hairline border + a soft shadow. Backgrounds
-(`ScreenBackground`), the striped placeholders, icons, and the abstract map are all
+(`ScreenBackground`), the striped placeholders, and icons are all
 **`react-native-svg`** (RN has no CSS gradients). `oklch.js` converts per-event hues at
 runtime.
 

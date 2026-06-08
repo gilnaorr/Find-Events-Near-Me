@@ -24,8 +24,11 @@ network-failure handling.
 **Beyond the initial brief** — these weren't in the original written description; most
 came with the design prototype and are kept because they make the demo realistic:
 
-- **Category filter** — horizontal chips on the Nearby screen (All / Live music /
-  Market / Workshop / Sports / Comedy / Art) filter the list client-side.
+- **Category filter** — horizontal chips on the Search Event (Nearby) screen (All /
+  Live music / Market / Workshop / Sports / Comedy / Art) filter the list client-side.
+- **Search radius** — events are filtered to within a radius of the device (default
+  40 mi); tap the value in Settings to cycle presets (1/2/5/10/25/40 mi) and watch the
+  list and map filter. Saved/detail ignore the radius.
 - **Freshness chip** — header pill showing cache state + age (Live · 2m / Stale / Offline);
   the Offline state reflects **real device connectivity** via `@react-native-community/netinfo`.
 - **Light / Dark theme.**
