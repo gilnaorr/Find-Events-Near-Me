@@ -254,3 +254,7 @@ export const MOCK_EVENTS = [
 
 // Simulated server time — used by the cache layer to compute TTL.
 export const MOCK_SERVER_TIME = "2026-06-06T12:00:00-04:00";
+
+// Bump whenever the seed event data changes so a previously-persisted cache (with
+// old events) is discarded on next launch instead of masking the update.
+export const DATA_VERSION = 2;

@@ -117,7 +117,9 @@ is just state.
 - `bookmarks` — a `Set` of saved event ids.
 - `prefs` — `{ lowDataMode, bgRefresh, notify, locationMode, radiusMi }` (`radiusMi`
   is the search radius — default 40, editable in Settings via a validated 1–250 input).
-- `cache` — `{ events, fetched_at }` (the cached API response + when it landed).
+- `cache` — `{ events, fetched_at, v }` (the cached API response, when it landed, and a
+  `DATA_VERSION` tag; a persisted cache whose `v` ≠ current is discarded on launch so
+  seed-data changes show up without a manual refresh).
 
 **Ephemeral state** (in-memory only):
 - `tab` (`nearby|map|saved|settings` — labelled "Search Event / Map / My Events /

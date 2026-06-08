@@ -20,7 +20,7 @@ import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from "@expo-google-
 import { ThemeProvider, useTheme } from "./src/ThemeContext";
 import { DB } from "./src/db";
 import { fakeFetchEvents, CACHE_TTL_SEC, cacheAgeSeconds, cacheFreshness } from "./src/api";
-import { MOCK_EVENTS } from "./src/data";
+import { MOCK_EVENTS, DATA_VERSION } from "./src/data";
 import { getDeviceLocation, getPermissionStatus, anchorEventsTo, DEFAULT_LOCATION } from "./src/location";
 import { Icons } from "./src/icons";
 
@@ -97,7 +97,7 @@ function Shell() {
     setFetchError(null);
     try {
       const res = await fakeFetchEvents({ online, errorRate });
-      setCache({ events: res.events, fetched_at: Date.now() / 1000 });
+      setCache({ events: res.events, fetched_at: Date.now() / 1000, v: DATA_VERSION });
     } catch (e) {
       setFetchError(e.message);
     } finally {
@@ -111,14 +111,16 @@ function Shell() {
       const persisted = (await DB.load()) || {};
       if (persisted.bookmarks) setBookmarks(new Set(persisted.bookmarks));
       if (persisted.prefs) setPrefs((p) => ({ ...p, ...persisted.prefs }));
-      if (persisted.cache) {
+      // Honor a persisted cache only if its data version matches; otherwise discard
+      // the stale events and re-seed (keeps bookmarks/prefs intact).
+      if (persisted.cache && persisted.cache.v === DATA_VERSION) {
         setCache(persisted.cache);
       } else {
         const nowMs = Date.now();
         if (tweaks.cacheStart === "empty") doRefresh();
         else if (tweaks.cacheStart === "stale")
-          setCache({ events: MOCK_EVENTS, fetched_at: (nowMs - (CACHE_TTL_SEC + 600) * 1000) / 1000 });
-        else setCache({ events: MOCK_EVENTS, fetched_at: (nowMs - 90 * 1000) / 1000 });
+          setCache({ events: MOCK_EVENTS, fetched_at: (nowMs - (CACHE_TTL_SEC + 600) * 1000) / 1000, v: DATA_VERSION });
+        else setCache({ events: MOCK_EVENTS, fetched_at: (nowMs - 90 * 1000) / 1000, v: DATA_VERSION });
       }
       setHydrated(true);
     })();
@@ -232,8 +234,8 @@ function Shell() {
     onCacheStart: (v) => {
       setTweak("cacheStart", v);
       if (v === "empty") { DB.clearCache(); setCache(null); doRefresh(); }
-      else if (v === "stale") setCache({ events: MOCK_EVENTS, fetched_at: (Date.now() - (CACHE_TTL_SEC + 600) * 1000) / 1000 });
-      else setCache({ events: MOCK_EVENTS, fetched_at: (Date.now() - 90 * 1000) / 1000 });
+      else if (v === "stale") setCache({ events: MOCK_EVENTS, fetched_at: (Date.now() - (CACHE_TTL_SEC + 600) * 1000) / 1000, v: DATA_VERSION });
+      else setCache({ events: MOCK_EVENTS, fetched_at: (Date.now() - 90 * 1000) / 1000, v: DATA_VERSION });
     },
     onDataMode: (v) => { setTweak("dataMode", v); setPrefs((p) => ({ ...p, lowDataMode: v === "low" })); },
     onShowPermission: () => { setGranted(false); setTweak("showPermission", true); },
