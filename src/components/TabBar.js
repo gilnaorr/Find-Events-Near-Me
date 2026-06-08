@@ -13,10 +13,10 @@ import { fonts } from "../theme";
 export const TAB_BAR_HEIGHT = 60;
 
 const TABS = [
-  { id: "nearby", label: "Nearby", icon: Icons.Compass },
+  { id: "nearby", label: "Search Event", icon: Icons.Compass },
   { id: "map", label: "Map", icon: Icons.Map },
-  { id: "saved", label: "Saved", icon: Icons.Bookmark },
-  { id: "settings", label: "Settings", icon: Icons.Settings },
+  { id: "saved", label: "My Events", icon: Icons.Bookmark },
+  { id: "settings", label: "Profile settings", icon: Icons.Settings },
 ];
 
 export default function TabBar({ active, onChange }) {
@@ -41,7 +41,12 @@ export default function TabBar({ active, onChange }) {
               <View style={[styles.iconWrap, on && { backgroundColor: t.accent }]}>
                 <Ico size={20} stroke={on ? 2 : 1.7} color={on ? t.accentInk : t.ink3} />
               </View>
-              <Text style={[styles.label, { color: on ? t.accent : t.ink3 }]} numberOfLines={1}>
+              <Text
+                style={[styles.label, { color: on ? t.accent : t.ink3 }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
                 {tab.label}
               </Text>
             </Pressable>
@@ -57,7 +62,7 @@ const styles = StyleSheet.create({
   row: { height: TAB_BAR_HEIGHT, flexDirection: "row", alignItems: "center", paddingTop: 6 },
   tab: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2 },
   iconWrap: { paddingHorizontal: 16, paddingVertical: 4, borderRadius: 999 },
-  label: { fontFamily: fonts.sansMed, fontSize: 10 },
+  label: { fontFamily: fonts.sansMed, fontSize: 10, alignSelf: "stretch", textAlign: "center", paddingHorizontal: 2 },
   shadow: {
     ...Platform.select({
       ios: { shadowColor: "#2a2622", shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.06, shadowRadius: 8 },
