@@ -49,7 +49,7 @@ flowchart TD
     API -->|"events + server_time"| App
     Data["data.js<br/>mock events + image_url"] --> API
     App -->|"getDeviceLocation()"| Loc["location.js<br/>real device location (expo-location)"]
-    Loc -->|"anchorEventsTo()"| Data
+    Loc -->|"withDistances()"| Data
     Screens -->|"image_url"| Img["expo-image<br/>memory + disk cache"]
     Img -->|"GET"| CDN[("Image CDN")]
 
@@ -75,7 +75,7 @@ src/
   data.js                      Mock REST payload (the "events DB" seed) + server_time
   db.js                        Persistence: AsyncStorage wrapper (bookmarks + cache + prefs)
   api.js                       fakeFetchEvents network stub + CACHE_TTL_SEC
-  location.js                  Real device location (expo-location) + Haversine + re-anchor
+  location.js                  Real device location (expo-location) + Haversine distance
   theme.js                     AUTO-GENERATED light/dark palettes + type/radius scales
   oklch.js                     Runtime oklch→hex (per-event placeholder hues)
   icons.js                     Stroke icon set (react-native-svg)
@@ -127,8 +127,9 @@ is just state.
   `now` (ticks every 5s so age chips update), `granted` (permission), `coords` (live
   device location), `toast`, `tweaksOpen`, and `tweaks` (the engineering-state values).
 
-**Derived event lists.** From the cache, `App.js` derives `allEvents` (re-anchored to
-`coords`, see §6) and `events` = `allEvents` filtered to within `prefs.radiusMi`. The
+**Derived event lists.** From the cache, `App.js` derives `allEvents` (each event tagged
+with its true distance from `coords`, see §6) and `events` = `allEvents` filtered to
+within `prefs.radiusMi`. The
 discovery surfaces (Search Event / Map) get the radius-filtered `events`; Saved and the
 detail view get `allEvents`, so bookmarks and an open event are never hidden by the radius.
 
@@ -161,7 +162,7 @@ Two objects flow down to every screen:
 `src/data.js` is the **mock REST payload** — the events the server would return,
 each with id, title, category, venue, address, `lat`/`lng`, time, price, capacity,
 tags, and an `image_url`. `distance_mi` is **not** stored here — it's computed at
-runtime against the live device coordinate by `anchorEventsTo` (see §6).
+runtime against the live device coordinate by `withDistances` (see §6).
 
 `src/db.js` is the **persistence layer** (the production app's Core Data). It wraps
 `@react-native-async-storage/async-storage` with `load()`, `save()`, `clearCache()`,
@@ -234,11 +235,12 @@ truth they're seeing. Supporting behaviors, all in `App.js`:
 `getCurrentPositionAsync()`; works in Expo Go). On denial/error it falls back to
 `DEFAULT_LOCATION` (mode `"city"`) so the app still renders.
 
-Because the events are synthetic, `anchorEventsTo(events, coord)` **re-anchors** them
-around the live coordinate — translating each event's offset from `DEFAULT_LOCATION`
-onto the device position so they stay "near me" wherever you are — and recomputes
-`distance_mi` with `haversineMiles` / `distanceTo`. `App.js` holds the live `coords`
-and derives the displayed events with a `useMemo`.
+`withDistances(events, coord)` attaches each event's **true distance** from the live
+device coordinate to its own location (`haversineMiles` / `distanceTo`), leaving the
+event's lat/lng untouched — so the displayed distance reflects where the device actually
+is and updates as it moves. `App.js` holds the live `coords` and derives the displayed
+events with a `useMemo`. (The sample events have fixed coordinates; a device far from
+them simply shows large distances, which the search radius may then filter out.)
 
 `PermissionScreen` is a **primer**: its "Enable location" button calls the injected
 `onEnable`, which fires the **real OS permission dialog**; "Use a city instead" takes
@@ -359,7 +361,7 @@ architecture reads the same:
 | Connectivity   | NetInfo (real online/offline + reachability) | `NWPathMonitor` (Network.framework) |
 | Cache          | stale-while-revalidate, 15m TTL          | same policy in the repository          |
 | Images         | `expo-image` mem+disk cache              | `NSCache` + `URLCache`                  |
-| Location       | `expo-location` + Haversine + re-anchor  | `CLLocationManager` + `CLLocation`     |
+| Location       | `expo-location` + true Haversine distance | `CLLocationManager` + `CLLocation`    |
 | Map            | Leaflet/OSM in a `WebView`               | `MapKit` (`Map`/`MKMapView`)           |
 | Background     | 30 s foreground interval                 | `BGAppRefreshTask` (~30 min)           |
 | Haptics/Maps   | `expo-haptics` / `Linking`               | `UIImpactFeedbackGenerator` / `UIApplication.open` |
@@ -369,5 +371,5 @@ architecture reads the same:
 Native map SDK (uses a Leaflet/OSM WebView so it runs in Expo Go; map tiles need
 network), continuous position tracking (one-shot fetch, not `watchPositionAsync`),
 user-uploaded photos (stock images by URL), auth, push, payments, analytics, and
-i18n beyond locale date/number formatting. Because the events are synthetic, they're
-re-anchored around the live coordinate rather than being real venues at your location.
+i18n beyond locale date/number formatting. The events are synthetic sample data at
+fixed coordinates (no real feed); distance is computed live from the device to them.

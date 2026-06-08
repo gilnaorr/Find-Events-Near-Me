@@ -44,10 +44,12 @@ came with the design prototype and are kept because they make the demo realistic
   (added per review request; the original prototype used striped placeholders).
 
 Location uses the device's **native location API** via `expo-location` (the real OS
-permission prompt + `getCurrentPositionAsync()`; works in Expo Go). Because the events
-are synthetic, they're **re-anchored** around your live coordinate so they stay nearby
-wherever you are (`src/location.js`). If permission is denied, it falls back to a
-default coordinate so the app still renders.
+permission prompt + `getCurrentPositionAsync()`; works in Expo Go). Each event's
+distance is the **true great-circle distance from your live device position** to the
+event's own coordinate (`src/location.js`), so it changes as you move. If permission is
+denied, it falls back to a default coordinate so the app still renders. (The sample
+events have fixed coordinates; if you're far from them, the search radius may filter
+them out — raise it in Profile settings.)
 
 ## Run it
 
@@ -88,7 +90,7 @@ sheet — the same panel from the prototype:
 | Icons        | inline SVG             | `react-native-svg` (`src/icons.js`)           |
 | Maps links   | `window.__toast`       | `Linking.openURL` (Apple / Google / Waze)     |
 | Event images | striped placeholders   | `expo-image` w/ memory+disk cache (`src/components/EventImage.js`) |
-| Location     | `"Mission, SF"` string | `expo-location` (real) + Haversine + re-anchor (`src/location.js`) |
+| Location     | `"Mission, SF"` string | `expo-location` (real) + true Haversine distance (`src/location.js`) |
 | Map          | abstract SVG streets   | Leaflet/OSM in a `react-native-webview` (`src/components/LeafletMap.js`) |
 | Haptics      | —                      | `expo-haptics` on bookmark toggle             |
 | Colors       | `oklch(...)`           | converted to hex/rgba by `gen-theme.js` → `src/theme.js` |
@@ -115,8 +117,9 @@ background refresh runs every 30s while foregrounded (≈30 min in production).
   A native build would use MapKit / Google Maps.
 - Continuous location tracking — one-shot `getCurrentPositionAsync()` on grant, not a
   live `watchPositionAsync` subscription.
-- Real venues at your location — events are synthetic and re-anchored around your live
-  coordinate, so addresses are illustrative.
+- Real event feed — events are synthetic sample data at fixed coordinates; distance is
+  computed live from your device to them, so if you're far from the sample area the list
+  can be empty until you widen the radius.
 - User-uploaded photos — event images are stock (Unsplash) referenced by URL; there's
   no upload pipeline.
 - Auth, push, payments, analytics, i18n beyond locale date/number formatting.

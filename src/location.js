@@ -1,12 +1,10 @@
 // location.js — device-location service (real, via expo-location).
 //
 // Reads the device's coordinate through the native location API (works in Expo Go).
-// The mock events are defined relative to DEFAULT_LOCATION; `anchorEventsTo` translates
-// that arrangement onto the live coordinate so events stay "near me" wherever you are.
+// `withDistances` then tags each event with its true distance from that coordinate.
 import * as Location from "expo-location";
 
-// Fallback / sample anchor. Used when permission is denied or unavailable, and as the
-// origin the mock events are positioned relative to.
+// Fallback location, used when permission is denied or unavailable (mode "city").
 export const DEFAULT_LOCATION = {
   area: "Current location", // generic header label
   lat: 43.6738,
@@ -60,18 +58,10 @@ export function haversineMiles(lat1, lng1, lat2, lng2) {
 export const distanceTo = (coord, lat, lng) =>
   Math.round(haversineMiles(coord.lat, coord.lng, lat, lng) * 10) / 10;
 
-// Re-anchor events around `coord`: translate each event's lat/lng offset from
-// DEFAULT_LOCATION onto `coord` so events sit the same small distance away (staying
-// "near me"), and recompute `distance_mi`. With coord === DEFAULT_LOCATION this is the
-// identity. (Distances stay realistic; they aren't bit-identical across large latitude
-// shifts, since a degree of longitude covers different ground distance by latitude.)
-export function anchorEventsTo(events, coord) {
+// Attach the true distance (mi) from `coord` to each event's own location. Events keep
+// their real lat/lng, so the distance reflects the device's actual position and updates
+// as it moves. (No coord → events returned unchanged.)
+export function withDistances(events, coord) {
   if (!coord) return events;
-  const dLat = coord.lat - DEFAULT_LOCATION.lat;
-  const dLng = coord.lng - DEFAULT_LOCATION.lng;
-  return events.map((e) => {
-    const lat = e.lat + dLat;
-    const lng = e.lng + dLng;
-    return { ...e, lat, lng, distance_mi: distanceTo(coord, lat, lng) };
-  });
+  return events.map((e) => ({ ...e, distance_mi: distanceTo(coord, e.lat, e.lng) }));
 }

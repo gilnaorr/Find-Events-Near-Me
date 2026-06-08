@@ -21,7 +21,7 @@ import { ThemeProvider, useTheme } from "./src/ThemeContext";
 import { DB } from "./src/db";
 import { fakeFetchEvents, CACHE_TTL_SEC, cacheAgeSeconds, cacheFreshness } from "./src/api";
 import { MOCK_EVENTS, DATA_VERSION } from "./src/data";
-import { getDeviceLocation, getPermissionStatus, anchorEventsTo, DEFAULT_LOCATION } from "./src/location";
+import { getDeviceLocation, getPermissionStatus, withDistances, DEFAULT_LOCATION } from "./src/location";
 import { Icons } from "./src/icons";
 
 import TabBar, { TAB_BAR_HEIGHT } from "./src/components/TabBar";
@@ -157,9 +157,9 @@ function Shell() {
 
   const cacheAgeSec = cacheAgeSeconds(cache?.fetched_at, now);
   const freshness = cacheFreshness(cache?.fetched_at, now);
-  // Re-anchor cached events around the live coordinate (preserves their spread,
-  // recomputes distance_mi) so they're "near me" wherever the device is.
-  const allEvents = useMemo(() => anchorEventsTo(cache?.events || [], coords), [cache, coords]);
+  // Attach each event's true distance from the live device coordinate (events keep
+  // their real locations, so distance reflects where the device actually is).
+  const allEvents = useMemo(() => withDistances(cache?.events || [], coords), [cache, coords]);
   // Discovery surfaces (Nearby, Map) only show events within the search radius.
   // Saved/Settings/detail use the full set so bookmarks aren't hidden by the radius.
   const events = useMemo(

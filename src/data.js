@@ -2,9 +2,9 @@
 // GET /v1/events?lat=…&lng=…&radius=… returning events near the device.
 // Server contract: { events: Event[], cursor?: string, server_time: ISO8601 }.
 //
-// Each event carries `lat`/`lng` and an `image_url`. `distance_mi` is NOT baked here:
-// the app re-anchors events around the live device coordinate and computes distance at
-// runtime (see `anchorEventsTo` in location.js).
+// Each event carries a fixed `lat`/`lng` and an `image_url`. `distance_mi` is NOT baked
+// here: the app computes each event's true distance from the live device coordinate at
+// runtime (see `withDistances` in location.js).
 const img = (id) => `https://images.unsplash.com/photo-${id}?w=800&q=80&auto=format&fit=crop`;
 
 export const MOCK_EVENTS = [

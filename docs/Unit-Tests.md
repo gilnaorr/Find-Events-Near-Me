@@ -31,25 +31,24 @@ Time:        5.579 s
 
 ---
 
-## Test 1 — Distance & re-anchoring
+## Test 1 — Distance to event
 
 **File:** `__tests__/location.test.js` · **Unit under test:** `haversineMiles` /
-`distanceTo` / `anchorEventsTo` (`src/location.js`)
+`distanceTo` / `withDistances` (`src/location.js`)
 
 **Why it matters.** Every event shows a "distance from you," the Map places a "you are
-here" marker, and events are **re-anchored** around the live device coordinate so they
-stay nearby wherever you are. All of this rests on a correct great-circle computation
-and an offset-preserving translation — a bug corrupts "events *near me*" without throwing.
+here" marker, and the search radius filters on it — all from a great-circle computation
+against the **live device coordinate**. A bug corrupts the core "events *near me*" value
+without throwing.
 
 **What it asserts.**
 - Distance from a point to itself is exactly `0`; the function is **symmetric**
   (`dist(A,B) === dist(B,A)` to 9 decimals).
-- `distanceTo` from the anchor to a point ~0.01° north lands in a tight band
-  (`0.5–0.9 mi`) and is **rounded to one decimal** — guards against unit errors
-  (km vs mi) or a wrong radius.
-- `anchorEventsTo` **translates** an event by the `(coord − DEFAULT)` lat/lng delta
-  (exact) and **recomputes** `distance_mi` to a realistic nearby value (`0 < d < 3 mi`),
-  while preserving the event's other fields.
+- `distanceTo` from a point to ~0.01° north lands in a tight band (`0.5–0.9 mi`) and is
+  **rounded to one decimal** — guards against unit errors (km vs mi) or a wrong radius.
+- `withDistances` leaves each event's lat/lng untouched and sets `distance_mi` to the
+  true distance **from the given coordinate** — so a farther device yields a larger
+  distance — while preserving the event's other fields.
 
 ---
 
