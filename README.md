@@ -39,8 +39,6 @@ Enhanced version with added features:
   not a shipping feature, it exists so the architecture is reviewable.
 - **Map tab** — a real interactive map (Leaflet + OpenStreetMap in a WebView) centered
   on your live location, with tappable event price-pins and a "you are here" marker.
-- **Event images** — each event carries an `image_url` rendered via `expo-image`
-  (added per review request; the original prototype used striped placeholders).
 
 Location uses the device's **native location API** via `expo-location` (the real OS
 permission prompt + `getCurrentPositionAsync()`; works in Expo Go). Each event's
