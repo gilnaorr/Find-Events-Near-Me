@@ -8,6 +8,7 @@ import Glass from "../components/Glass";
 import IOSSwitch from "../components/IOSSwitch";
 import { useTheme } from "../ThemeContext";
 import { fonts, radius } from "../theme";
+import { RADIUS_MIN, RADIUS_MAX, validateRadius } from "../radius";
 
 export default function SettingsScreen({ state, actions, tweaks }) {
   const { online, cacheAgeSec, allEvents, bookmarks, lowDataMode, bgRefresh, notify, locationMode, radiusMi } = state;
@@ -15,22 +16,11 @@ export default function SettingsScreen({ state, actions, tweaks }) {
   const insets = useSafeAreaInsets();
   const cacheKB = (allEvents.length * 1.4 + bookmarks.size * 0.2).toFixed(1);
 
-  // Editable search radius (whole miles, 1–250). Valid input commits live; invalid
-  // input shows an inline error and is reverted on blur.
-  const RADIUS_MIN = 1;
-  const RADIUS_MAX = 250;
+  // Editable search radius (whole miles, RADIUS_MIN–RADIUS_MAX). Valid input commits
+  // live; invalid input shows an inline error and is reverted on blur. The bounds +
+  // validation live in src/radius.js (unit-tested).
   const [radiusDraft, setRadiusDraft] = useState(String(radiusMi));
   const [radiusError, setRadiusError] = useState(null);
-
-  const validateRadius = (text) => {
-    const s = text.trim();
-    if (s === "") return { error: `Enter a radius (${RADIUS_MIN}–${RADIUS_MAX})`, value: null };
-    if (!/^\d+$/.test(s)) return { error: "Numbers only", value: null };
-    const n = parseInt(s, 10);
-    if (n < RADIUS_MIN) return { error: `Minimum is ${RADIUS_MIN} mile`, value: null };
-    if (n > RADIUS_MAX) return { error: `Maximum is ${RADIUS_MAX} miles`, value: null };
-    return { error: null, value: n };
-  };
 
   const onChangeRadius = (text) => {
     setRadiusDraft(text);

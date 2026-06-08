@@ -1,8 +1,9 @@
 # Unit Tests
 
-Three unit tests cover the app's pure, high-value core logic — the parts where a
+Four unit tests cover the app's pure, high-value core logic — the parts where a
 regression would silently break behavior: **distance-to-event**, the **network
-layer's outcomes**, and the **cache freshness / TTL policy**.
+layer's outcomes**, the **cache freshness / TTL policy**, and the **search-radius
+input validation**.
 
 ## Tooling & how to run
 
@@ -18,13 +19,14 @@ npm test          # or: npx jest
 Latest run:
 
 ```
+PASS __tests__/radius.test.js
 PASS __tests__/cache.test.js
 PASS __tests__/location.test.js
 PASS __tests__/api.test.js
 
-Test Suites: 3 passed, 3 total
-Tests:       3 passed, 3 total
-Time:        5.447 s
+Test Suites: 4 passed, 4 total
+Tests:       4 passed, 4 total
+Time:        5.579 s
 ```
 
 ---
@@ -93,8 +95,29 @@ isolation (and `App.js` now calls them, so the tested code is the code that runs
 
 ---
 
+## Test 4 — Search-radius input validation
+
+**File:** `__tests__/radius.test.js` · **Unit under test:** `validateRadius`
+(`src/radius.js`)
+
+**Why it matters.** The Settings radius field is free user input that drives the
+distance filter; bad input must never commit. The rules were extracted into a pure
+`validateRadius` (used by `SettingsScreen`) so they're testable in isolation.
+
+**What it asserts.** `validateRadius(text)` returns `{ error, value }`:
+- **Valid** whole miles in `[1, 250]` → `{ error: null, value: <int> }`, including the
+  exact bounds; surrounding whitespace is trimmed.
+- **Empty** → a prompt message, `value: null` (nothing committed).
+- **Non-numeric / decimals / signs** (`"abc"`, `"4.5"`, `"-5"`) → `"Numbers only"`,
+  `value: null`.
+- **Below min** (`"0"`) → `"Minimum is 1 mile"`; **above max** (`"251"`, `"9999"`) →
+  `"Maximum is 250 miles"`; both with `value: null`.
+- The advertised bounds are `RADIUS_MIN === 1`, `RADIUS_MAX === 250`.
+
+---
+
 ## Scope note
 
 These are **logic** unit tests (pure functions, no UI). Component/render tests
 (`@testing-library/react-native`) and integration tests of the `App.js` cache
-orchestration are sensible next steps but out of scope for this set of three.
+orchestration are sensible next steps but out of scope for this set.
