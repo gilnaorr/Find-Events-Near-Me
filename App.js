@@ -149,7 +149,13 @@ function Shell() {
   const freshness = cacheFreshness(cache?.fetched_at, now);
   // Re-anchor cached events around the live coordinate (preserves their spread,
   // recomputes distance_mi) so they're "near me" wherever the device is.
-  const events = useMemo(() => anchorEventsTo(cache?.events || [], coords), [cache, coords]);
+  const allEvents = useMemo(() => anchorEventsTo(cache?.events || [], coords), [cache, coords]);
+  // Discovery surfaces (Nearby, Map) only show events within the search radius.
+  // Saved/Settings/detail use the full set so bookmarks aren't hidden by the radius.
+  const events = useMemo(
+    () => allEvents.filter((e) => e.distance_mi <= prefs.radiusMi),
+    [allEvents, prefs.radiusMi]
+  );
 
   // Background refresh — every 30s in the prototype, ~30m in production.
   useEffect(() => {
@@ -201,12 +207,13 @@ function Shell() {
       setLowDataMode: (v) => setPrefs((p) => ({ ...p, lowDataMode: v })),
       setBgRefresh: (v) => setPrefs((p) => ({ ...p, bgRefresh: v })),
       setNotify: (v) => setPrefs((p) => ({ ...p, notify: v })),
+      setRadius: (v) => setPrefs((p) => ({ ...p, radiusMi: v })),
     }),
     [doRefresh, toggleBookmark]
   );
 
   const sharedState = {
-    events, coords, online, freshness, cacheAgeSec, refreshing, fetchError,
+    events, allEvents, coords, online, freshness, cacheAgeSec, refreshing, fetchError,
     bookmarks, city: "Current location",
     lowDataMode: prefs.lowDataMode, bgRefresh: prefs.bgRefresh,
     notify: prefs.notify, locationMode: prefs.locationMode, radiusMi: prefs.radiusMi,
@@ -225,7 +232,7 @@ function Shell() {
     onClearAll: () => { DB.clearAll(); setBookmarks(new Set()); setCache(null); doRefresh(); },
   };
 
-  const openEvent = openEventId ? events.find((e) => e.id === openEventId) : null;
+  const openEvent = openEventId ? allEvents.find((e) => e.id === openEventId) : null;
 
   let body;
   if (!granted) {

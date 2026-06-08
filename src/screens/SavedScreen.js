@@ -10,10 +10,11 @@ import { useTheme } from "../ThemeContext";
 import { fonts, radius } from "../theme";
 
 export default function SavedScreen({ state, actions }) {
-  const { events, bookmarks } = state;
+  const { allEvents, bookmarks } = state;
   const { t, dark } = useTheme();
   const insets = useSafeAreaInsets();
-  const saved = events.filter((e) => bookmarks.has(e.id));
+  // Saved shows all bookmarks regardless of the search radius.
+  const saved = allEvents.filter((e) => bookmarks.has(e.id));
 
   return (
     <Screen>

@@ -10,10 +10,16 @@ import { useTheme } from "../ThemeContext";
 import { fonts, radius } from "../theme";
 
 export default function SettingsScreen({ state, actions, tweaks }) {
-  const { online, cacheAgeSec, events, bookmarks, lowDataMode, bgRefresh, notify, locationMode, radiusMi } = state;
+  const { online, cacheAgeSec, allEvents, bookmarks, lowDataMode, bgRefresh, notify, locationMode, radiusMi } = state;
   const { t } = useTheme();
   const insets = useSafeAreaInsets();
-  const cacheKB = (events.length * 1.4 + bookmarks.size * 0.2).toFixed(1);
+  const cacheKB = (allEvents.length * 1.4 + bookmarks.size * 0.2).toFixed(1);
+
+  const RADIUS_PRESETS = [1, 2, 5, 10, 25, 40];
+  const cycleRadius = () => {
+    const i = RADIUS_PRESETS.indexOf(radiusMi);
+    actions.setRadius(RADIUS_PRESETS[(i + 1) % RADIUS_PRESETS.length] ?? 40);
+  };
 
   const permSub =
     locationMode === "precise" ? "While using the app · precise"
@@ -34,8 +40,10 @@ export default function SettingsScreen({ state, actions, tweaks }) {
           <Row title="Permission" sub={permSub}>
             <Text style={[styles.value, { color: t.accent }]}>Change</Text>
           </Row>
-          <Row title="Search radius" sub="Events within this many miles" last>
-            <Text style={[styles.value, { color: t.ink3 }]}>{radiusMi} mi</Text>
+          <Row title="Search radius" sub="Events within this many miles · tap to change" last>
+            <Pressable onPress={cycleRadius} hitSlop={10}>
+              <Text style={[styles.value, { color: t.accent, fontFamily: fonts.sansSemi }]}>{radiusMi} mi</Text>
+            </Pressable>
           </Row>
         </Section>
 
