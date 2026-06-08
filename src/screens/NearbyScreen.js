@@ -70,7 +70,7 @@ export default function NearbyScreen({ state, actions }) {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 140 + insets.bottom }}
+        contentContainerStyle={{ paddingBottom: 72 }}
       >
         {!online && (
           <Glass strong radius={radius.md} style={styles.banner} contentStyle={styles.bannerContent}>

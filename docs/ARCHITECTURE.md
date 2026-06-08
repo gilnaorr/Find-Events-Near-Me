@@ -87,7 +87,7 @@ src/
     GlassButton.js             Circular blurred button (back/share/bookmark/refresh)
     BrandHeader.js / Logo.js   App name + SVG brand mark
     AppHeader.js               Floating header pill: location, freshness chip, refresh
-    TabBar.js                  Floating glass tab bar (Nearby/Map/Saved/Settings)
+    TabBar.js                  Bottom nav bar — reserves space (Nearby/Map/Saved/Settings)
     EventCard.js               List cell: image, category pill, bookmark, title, meta
     EventImage.js              expo-image over the striped placeholder (load/fallback)
     ImgPlaceholder.js          Striped placeholder + shimmer
@@ -124,8 +124,9 @@ is just state.
   `tweaksOpen`, and `tweaks` (the engineering-state panel values).
 
 **Navigation** is a derived render: permission screen if `!granted`, else the detail
-screen if an event is open, else the active `tab`'s screen. The floating `TabBar`,
-Tweaks gear, and `Toast` are rendered once at the shell level over the active screen.
+screen if an event is open, else the active `tab`'s screen. The `TabBar` is a flex
+sibling below the screen body (it reserves space, so content never sits under it); the
+Tweaks gear and `Toast` float just above it. All three are rendered once at the shell.
 
 Two objects flow down to every screen:
 - `state` — a read-only snapshot (events, freshness, online, bookmarks, prefs…).

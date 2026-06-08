@@ -31,7 +31,7 @@ export default function MapScreen({ state, actions }) {
         </Glass>
 
         {selEvent && (
-          <Pressable onPress={() => actions.openDetail(selEvent.id)} style={[styles.cardWrap, { bottom: 96 + insets.bottom }]}>
+          <Pressable onPress={() => actions.openDetail(selEvent.id)} style={[styles.cardWrap, { bottom: 16 }]}>
             <Glass strong radius={radius.lg} contentStyle={styles.card}>
               <View style={styles.cardImg}>
                 <EventImage url={selEvent.image_url} hue={35} />

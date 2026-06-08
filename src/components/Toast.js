@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { Text, StyleSheet, Animated } from "react-native";
 import { fonts } from "../theme";
 
-export default function Toast({ message, icon, onDone, bottomInset = 0 }) {
+export default function Toast({ message, icon, onDone, bottom = 24 }) {
   const anim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function Toast({ message, icon, onDone, bottomInset = 0 }) {
       style={[
         styles.toast,
         {
-          bottom: 96 + bottomInset,
+          bottom,
           opacity: anim,
           transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
         },

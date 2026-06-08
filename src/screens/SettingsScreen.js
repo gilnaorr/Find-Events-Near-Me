@@ -35,7 +35,7 @@ export default function SettingsScreen({ state, actions, tweaks }) {
         </View>
       </Glass>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 + insets.bottom }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 72 }}>
         <Section title="Location">
           <Row title="Permission" sub={permSub}>
             <Text style={[styles.value, { color: t.accent }]}>Change</Text>

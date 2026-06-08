@@ -1,10 +1,16 @@
-// TabBar — floating Liquid-Glass pill, bottom-center, with an accent active tab.
+// TabBar — full-width bottom navigation bar that RESERVES layout space (content sits
+// above it, never under it). Glass background + top hairline; active tab gets an
+// accent pill behind its icon. Rendered as a flex child below the screen body.
 import React from "react";
 import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import { BlurView } from "expo-blur";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icons } from "../icons";
 import { useTheme } from "../ThemeContext";
 import { fonts } from "../theme";
+
+// Content height of the bar (excluding the bottom safe-area inset).
+export const TAB_BAR_HEIGHT = 60;
 
 const TABS = [
   { id: "nearby", label: "Nearby", icon: Icons.Compass },
@@ -13,61 +19,55 @@ const TABS = [
   { id: "settings", label: "Settings", icon: Icons.Settings },
 ];
 
-export default function TabBar({ active, onChange, bottomInset = 0 }) {
+export default function TabBar({ active, onChange }) {
   const { t, dark } = useTheme();
+  const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.wrap, { bottom: 18 + bottomInset }]} pointerEvents="box-none">
-      <View style={[styles.bar, dark ? styles.shadowDark : styles.shadow]}>
-        <BlurView intensity={40} tint={dark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: t.glassBg }]} />
-        <View style={styles.row}>
-          {TABS.map((tab) => {
-            const Ico = tab.icon;
-            const on = active === tab.id;
-            return (
-              <Pressable
-                key={tab.id}
-                onPress={() => onChange(tab.id)}
-                style={[styles.tab, on && { backgroundColor: t.accent }]}
-              >
+    <View
+      style={[
+        styles.bar,
+        { paddingBottom: insets.bottom, borderTopColor: dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)" },
+        dark ? styles.shadowDark : styles.shadow,
+      ]}
+    >
+      <BlurView intensity={40} tint={dark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: t.glassBgStrong }]} />
+      <View style={styles.row}>
+        {TABS.map((tab) => {
+          const Ico = tab.icon;
+          const on = active === tab.id;
+          return (
+            <Pressable key={tab.id} onPress={() => onChange(tab.id)} style={styles.tab}>
+              <View style={[styles.iconWrap, on && { backgroundColor: t.accent }]}>
                 <Ico size={20} stroke={on ? 2 : 1.7} color={on ? t.accentInk : t.ink3} />
-                <Text
-                  style={[styles.tabLabel, { color: on ? t.accentInk : t.ink3 }]}
-                  numberOfLines={1}
-                >
-                  {tab.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+              </View>
+              <Text style={[styles.label, { color: on ? t.accent : t.ink3 }]} numberOfLines={1}>
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: "absolute", left: 0, right: 0, alignItems: "center", zIndex: 40 },
-  bar: { borderRadius: 999, overflow: "hidden", padding: 6 },
-  row: { flexDirection: "row", gap: 2 },
-  tab: {
-    width: 56,
-    height: 52,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 999,
-  },
-  tabLabel: { fontFamily: fonts.sansMed, fontSize: 9.5, marginTop: 2 },
+  bar: { borderTopWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
+  row: { height: TAB_BAR_HEIGHT, flexDirection: "row", alignItems: "center", paddingTop: 6 },
+  tab: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2 },
+  iconWrap: { paddingHorizontal: 16, paddingVertical: 4, borderRadius: 999 },
+  label: { fontFamily: fonts.sansMed, fontSize: 10 },
   shadow: {
     ...Platform.select({
-      ios: { shadowColor: "#2a2622", shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.16, shadowRadius: 24 },
+      ios: { shadowColor: "#2a2622", shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.06, shadowRadius: 8 },
       android: { elevation: 12 },
       default: {},
     }),
   },
   shadowDark: {
     ...Platform.select({
-      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.45, shadowRadius: 26 },
+      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.3, shadowRadius: 10 },
       android: { elevation: 14 },
       default: {},
     }),

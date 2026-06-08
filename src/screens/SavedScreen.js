@@ -45,7 +45,7 @@ export default function SavedScreen({ state, actions }) {
           </Text>
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 140 + insets.bottom, gap: 16 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 72, gap: 16 }}>
           {saved.map((ev) => (
             <EventCard
               key={ev.id}

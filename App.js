@@ -24,7 +24,7 @@ import { MOCK_EVENTS } from "./src/data";
 import { getDeviceLocation, getPermissionStatus, anchorEventsTo, DEFAULT_LOCATION } from "./src/location";
 import { Icons } from "./src/icons";
 
-import TabBar from "./src/components/TabBar";
+import TabBar, { TAB_BAR_HEIGHT } from "./src/components/TabBar";
 import Toast from "./src/components/Toast";
 import GlassButton from "./src/components/GlassButton";
 import PermissionScreen from "./src/screens/PermissionScreen";
@@ -44,14 +44,14 @@ const TWEAK_DEFAULTS = {
   showPermission: false,
 };
 
-function TweaksGearButton({ onPress, bottomInset }) {
+function TweaksGearButton({ onPress, bottom }) {
   const { t } = useTheme();
   return (
     <GlassButton
       size={44}
       strong
       onPress={onPress}
-      style={{ position: "absolute", right: 16, bottom: 92 + bottomInset, zIndex: 41 }}
+      style={{ position: "absolute", right: 16, bottom, zIndex: 41 }}
     >
       <Icons.Sliders size={18} color={t.ink2} />
     </GlassButton>
@@ -273,21 +273,26 @@ function Shell() {
   }
 
   const showChrome = granted && !openEvent;
+  // The tab bar reserves space below the body. The gear floats just above the bar;
+  // the toast floats above the bar (tab screens) or above the detail CTA (detail).
+  const barSpace = showChrome ? TAB_BAR_HEIGHT + insets.bottom : 0;
+  const gearBottom = barSpace + 12;
+  const toastBottom = openEvent ? 92 + insets.bottom : showChrome ? barSpace + 12 : 24 + insets.bottom;
 
   return (
     <ThemeProvider dark={dark}>
       <StatusBar style={dark ? "light" : "dark"} />
       <View style={{ flex: 1 }}>
-        {body}
+        {/* content region — sits above the bar; overlays are positioned against it */}
+        <View style={{ flex: 1 }}>{body}</View>
+
+        {showChrome && <TabBar active={tab} onChange={setTab} />}
 
         {showChrome && (
-          <>
-            <TabBar active={tab} onChange={setTab} bottomInset={insets.bottom} />
-            <TweaksGearButton onPress={() => setTweaksOpen(true)} bottomInset={insets.bottom} />
-          </>
+          <TweaksGearButton onPress={() => setTweaksOpen(true)} bottom={gearBottom} />
         )}
 
-        <Toast message={toast?.m} icon={toast?.icon} onDone={() => setToast(null)} bottomInset={insets.bottom} />
+        <Toast message={toast?.m} icon={toast?.icon} onDone={() => setToast(null)} bottom={toastBottom} />
 
         <TweaksSheet visible={tweaksOpen} onClose={() => setTweaksOpen(false)} tweaks={tweaks} controls={tweakControls} />
       </View>
