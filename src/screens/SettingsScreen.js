@@ -10,7 +10,7 @@ import { useTheme } from "../ThemeContext";
 import { fonts, radius } from "../theme";
 
 export default function SettingsScreen({ state, actions, tweaks }) {
-  const { online, cacheAgeSec, events, bookmarks, lowDataMode, bgRefresh, notify, locationMode } = state;
+  const { online, cacheAgeSec, events, bookmarks, lowDataMode, bgRefresh, notify, locationMode, radiusMi } = state;
   const { t } = useTheme();
   const insets = useSafeAreaInsets();
   const cacheKB = (events.length * 1.4 + bookmarks.size * 0.2).toFixed(1);
@@ -35,7 +35,7 @@ export default function SettingsScreen({ state, actions, tweaks }) {
             <Text style={[styles.value, { color: t.accent }]}>Change</Text>
           </Row>
           <Row title="Search radius" sub="Events within this many miles" last>
-            <Text style={[styles.value, { color: t.ink3 }]}>5 mi</Text>
+            <Text style={[styles.value, { color: t.ink3 }]}>{radiusMi} mi</Text>
           </Row>
         </Section>
 

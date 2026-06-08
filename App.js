@@ -66,7 +66,7 @@ function Shell() {
   // persistent state
   const [hydrated, setHydrated] = useState(false);
   const [bookmarks, setBookmarks] = useState(() => new Set());
-  const [prefs, setPrefs] = useState({ lowDataMode: false, bgRefresh: true, notify: false, locationMode: "precise" });
+  const [prefs, setPrefs] = useState({ lowDataMode: false, bgRefresh: true, notify: false, locationMode: "precise", radiusMi: 40 });
   const [cache, setCache] = useState(null);
 
   // ephemeral state
@@ -209,7 +209,7 @@ function Shell() {
     events, coords, online, freshness, cacheAgeSec, refreshing, fetchError,
     bookmarks, city: "Current location",
     lowDataMode: prefs.lowDataMode, bgRefresh: prefs.bgRefresh,
-    notify: prefs.notify, locationMode: prefs.locationMode,
+    notify: prefs.notify, locationMode: prefs.locationMode, radiusMi: prefs.radiusMi,
   };
 
   const tweakControls = {
