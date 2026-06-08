@@ -22,9 +22,25 @@ export async function getPermissionStatus() {
   }
 }
 
+// Reverse-geocode to a district-level label (e.g. "Mission, San Francisco"). Needs
+// network; returns null on failure/empty so callers can fall back.
+async function reverseGeocodeLabel(lat, lng) {
+  try {
+    const [r] = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+    if (!r) return null;
+    const district = r.district || r.subregion; // neighborhood / borough
+    const city = r.city || r.region;
+    if (district && city && district !== city) return `${district}, ${city}`;
+    return district || city || r.region || null;
+  } catch {
+    return null;
+  }
+}
+
 // Reads the device coordinate. If `request` is true, prompts for permission first
-// (the real OS dialog). Returns { lat, lng, mode } — falls back to DEFAULT_LOCATION
-// (mode "city") if permission is denied or the read fails.
+// (the real OS dialog). Returns { lat, lng, mode, area } — `area` is the reverse-geocoded
+// district label. Falls back to DEFAULT_LOCATION (mode "city", area "Current location")
+// if permission is denied or the read fails.
 export async function getDeviceLocation({ request = false } = {}) {
   try {
     const perm = request
@@ -36,7 +52,10 @@ export async function getDeviceLocation({ request = false } = {}) {
     const pos = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.Low, // neighborhood-level; privacy-respecting
     });
-    return { lat: pos.coords.latitude, lng: pos.coords.longitude, mode: "precise", area: "Current location" };
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const label = await reverseGeocodeLabel(lat, lng); // null offline / on failure
+    return { lat, lng, mode: "precise", area: label || "Current location" };
   } catch {
     return { ...DEFAULT_LOCATION };
   }

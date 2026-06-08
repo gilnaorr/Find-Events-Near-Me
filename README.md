@@ -41,9 +41,10 @@ Enhanced version with added features:
   on your live location, with tappable event price-pins and a "you are here" marker.
 
 Location uses the device's **native location API** via `expo-location` (the real OS
-permission prompt + `getCurrentPositionAsync()`; works in Expo Go). Each event's
-distance is the **true great-circle distance from your live device position** to the
-event's own coordinate (`src/location.js`), so it changes as you move. If permission is
+permission prompt + `getCurrentPositionAsync()`; works in Expo Go). The header shows your
+**district-level area** (reverse-geocoded from the coordinate). Each event's distance is
+the **true great-circle distance from your live device position** to the event's own
+coordinate (`src/location.js`), so it changes as you move. If permission is
 denied, it falls back to a default coordinate so the app still renders. (The sample
 events have fixed coordinates; if you're far from them, the search radius may filter
 them out — raise it in Profile settings.)

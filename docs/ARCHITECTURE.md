@@ -233,7 +233,10 @@ truth they're seeing. Supporting behaviors, all in `App.js`:
 `src/location.js` reads the **real device location** via **`expo-location`**
 (`getDeviceLocation()` → `requestForegroundPermissionsAsync()` +
 `getCurrentPositionAsync()`; works in Expo Go). On denial/error it falls back to
-`DEFAULT_LOCATION` (mode `"city"`) so the app still renders.
+`DEFAULT_LOCATION` (mode `"city"`) so the app still renders. On the real-location path it
+also **reverse-geocodes** the coordinate (`Location.reverseGeocodeAsync`) to a
+district-level label (e.g. "Mission, San Francisco") shown in the header; it falls back
+to "Current location" when offline/denied or the lookup is empty.
 
 `withDistances(events, coord)` attaches each event's **true distance** from the live
 device coordinate to its own location (`haversineMiles` / `distanceTo`), leaving the

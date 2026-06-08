@@ -224,7 +224,7 @@ function Shell() {
 
   const sharedState = {
     events, allEvents, coords, online, freshness, cacheAgeSec, refreshing, fetchError,
-    bookmarks, city: "Current location",
+    bookmarks, city: coords.area || "Current location",
     lowDataMode: prefs.lowDataMode, bgRefresh: prefs.bgRefresh,
     notify: prefs.notify, locationMode: prefs.locationMode, radiusMi: prefs.radiusMi,
   };
