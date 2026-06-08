@@ -115,8 +115,6 @@ distance filter; bad input must never commit. The rules were extracted into a pu
 
 ---
 
-## Scope note
+## note
 
-These are **logic** unit tests (pure functions, no UI). Component/render tests
-(`@testing-library/react-native`) and integration tests of the `App.js` cache
-orchestration are sensible next steps but out of scope for this set.
+These are **logic** unit tests (pure functions, no UI). 
