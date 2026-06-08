@@ -1,4 +1,4 @@
-# Find Events Near Me — React Native / Expo
+# Find Events Near Me - React Native / Expo
 
 A working React Native (Expo) port of the **Find Events Near Me** design: a small,
 production-minded app that lists nearby events, lets you bookmark them, shows event
@@ -19,13 +19,12 @@ so it runs on a real device via Expo.
 The four bottom tabs are **Search Event**, **Map**, **My Events**, and
 **Profile settings**.
 
-Core (from the brief): list nearby events, bookmark them ("My Events" tab, persisted to
+Core version: list nearby events, bookmark them ("My Events" tab, persisted to
 the local DB), event detail, distance-to-event from the device location, deep-link to
 a maps app for directions, image + API-response caching, background refresh, graceful
 network-failure handling.
 
-**Beyond the initial brief** — these weren't in the original written description; most
-came with the design prototype and are kept because they make the demo realistic:
+Enhanced version with added features:
 
 - **Category filter** — horizontal chips on the **Search Event** screen (All /
   Live music / Market / Workshop / Sports / Comedy / Art) filter the list client-side.
