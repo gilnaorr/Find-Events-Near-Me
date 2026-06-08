@@ -41,9 +41,14 @@ export default function AppHeader({ city, freshness, ageSec, online, onRefresh, 
         <View style={[styles.locDot, { backgroundColor: t.accent }]}>
           <Icons.Pin size={16} stroke={2} color={t.accentInk} />
         </View>
-        <View style={{ flexShrink: 1 }}>
+        <View style={{ flexShrink: 1, minWidth: 0 }}>
           <Text style={[styles.locLabel, { color: t.ink3 }]}>{sublabel}</Text>
-          <Text style={[styles.locValue, { color: t.ink }]} numberOfLines={1}>
+          <Text
+            style={[styles.locValue, { color: t.ink }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+          >
             {city}
           </Text>
         </View>
@@ -80,5 +85,5 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   locLabel: { fontFamily: fonts.mono, fontSize: 9.5, letterSpacing: 0.8, textTransform: "uppercase" },
-  locValue: { fontSize: 15, fontFamily: fonts.sansSemi },
+  locValue: { fontSize: 13, fontFamily: fonts.sansSemi },
 });
