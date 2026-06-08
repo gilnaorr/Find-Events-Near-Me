@@ -20,6 +20,7 @@ import { ThemeProvider, useTheme } from "./src/ThemeContext";
 import { DB } from "./src/db";
 import { fakeFetchEvents, CACHE_TTL_SEC, cacheAgeSeconds, cacheFreshness } from "./src/api";
 import { MOCK_EVENTS } from "./src/data";
+import { getDeviceLocation, getPermissionStatus, anchorEventsTo, DEFAULT_LOCATION } from "./src/location";
 import { Icons } from "./src/icons";
 
 import TabBar from "./src/components/TabBar";
@@ -75,6 +76,7 @@ function Shell() {
   const [fetchError, setFetchError] = useState(null);
   const [now, setNow] = useState(() => Date.now() / 1000);
   const [granted, setGranted] = useState(true);
+  const [coords, setCoords] = useState(DEFAULT_LOCATION);
   const [toast, setToast] = useState(null);
   const [tweaksOpen, setTweaksOpen] = useState(false);
 
@@ -115,6 +117,22 @@ function Shell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Determine location permission + initial coordinate on mount.
+  // Already granted → read the position silently. Undetermined → show the primer.
+  // Denied → keep the fallback coordinate and proceed.
+  useEffect(() => {
+    (async () => {
+      const status = await getPermissionStatus();
+      if (status === "granted") {
+        const loc = await getDeviceLocation();
+        setCoords(loc);
+        setPrefs((p) => ({ ...p, locationMode: loc.mode }));
+      } else if (status === "undetermined") {
+        setGranted(false);
+      }
+    })();
+  }, []);
+
   // Persist on meaningful change.
   useEffect(() => {
     if (!hydrated) return;
@@ -129,7 +147,9 @@ function Shell() {
 
   const cacheAgeSec = cacheAgeSeconds(cache?.fetched_at, now);
   const freshness = cacheFreshness(cache?.fetched_at, now);
-  const events = cache?.events || [];
+  // Re-anchor cached events around the live coordinate (preserves their spread,
+  // recomputes distance_mi) so they're "near me" wherever the device is.
+  const events = useMemo(() => anchorEventsTo(cache?.events || [], coords), [cache, coords]);
 
   // Background refresh — every 30s in the prototype, ~30m in production.
   useEffect(() => {
@@ -186,7 +206,7 @@ function Shell() {
   );
 
   const sharedState = {
-    events, online, freshness, cacheAgeSec, refreshing, fetchError,
+    events, coords, online, freshness, cacheAgeSec, refreshing, fetchError,
     bookmarks, city: "Current location",
     lowDataMode: prefs.lowDataMode, bgRefresh: prefs.bgRefresh,
     notify: prefs.notify, locationMode: prefs.locationMode,
@@ -211,8 +231,19 @@ function Shell() {
   if (!granted) {
     body = (
       <PermissionScreen
-        onGranted={(mode) => { setGranted(true); setPrefs((p) => ({ ...p, locationMode: mode })); setTweak("showPermission", false); }}
-        onSkip={() => { setGranted(true); setPrefs((p) => ({ ...p, locationMode: "city" })); setTweak("showPermission", false); }}
+        onEnable={async () => {
+          const loc = await getDeviceLocation({ request: true }); // fires the real OS dialog
+          setCoords(loc);
+          setPrefs((p) => ({ ...p, locationMode: loc.mode }));
+          setGranted(true);
+          setTweak("showPermission", false);
+        }}
+        onSkip={() => {
+          setCoords(DEFAULT_LOCATION);
+          setGranted(true);
+          setPrefs((p) => ({ ...p, locationMode: "city" }));
+          setTweak("showPermission", false);
+        }}
       />
     );
   } else if (openEvent) {

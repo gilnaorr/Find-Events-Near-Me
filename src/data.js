@@ -2,14 +2,12 @@
 // GET /v1/events?lat=…&lng=…&radius=… returning events near the device.
 // Server contract: { events: Event[], cursor?: string, server_time: ISO8601 }.
 //
-// Events are anchored around the (mimicked) device location — 1 Mt Pleasant Rd,
-// Toronto — and each carries an `image_url` the app renders. `distance_mi` is
-// derived from the device coordinate via Haversine, like CLLocation.distance(from:).
-import { distanceFromDevice } from "./location";
-
+// Each event carries `lat`/`lng` and an `image_url`. `distance_mi` is NOT baked here:
+// the app re-anchors events around the live device coordinate and computes distance at
+// runtime (see `anchorEventsTo` in location.js).
 const img = (id) => `https://images.unsplash.com/photo-${id}?w=800&q=80&auto=format&fit=crop`;
 
-const BASE_EVENTS = [
+export const MOCK_EVENTS = [
   {
     id: "evt_01H8K2",
     title: "Sunset Soul Sessions",
@@ -147,12 +145,6 @@ const BASE_EVENTS = [
     tags: ["art", "indoor", "licensed"],
   },
 ];
-
-// Attach device-relative distance (mi) to each event.
-export const MOCK_EVENTS = BASE_EVENTS.map((e) => ({
-  ...e,
-  distance_mi: distanceFromDevice(e.lat, e.lng),
-}));
 
 // Simulated server time — used by the cache layer to compute TTL.
 export const MOCK_SERVER_TIME = "2026-06-06T12:00:00-04:00";

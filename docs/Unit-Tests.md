@@ -20,30 +20,34 @@ Latest run:
 ```
 PASS __tests__/cache.test.js
 PASS __tests__/location.test.js
-PASS __tests__/api.test.js (7.523 s)
+PASS __tests__/api.test.js
 
 Test Suites: 3 passed, 3 total
 Tests:       3 passed, 3 total
-Time:        9.845 s
+Time:        5.447 s
 ```
 
 ---
 
-## Test 1 — Distance calculation
+## Test 1 — Distance & re-anchoring
 
 **File:** `__tests__/location.test.js` · **Unit under test:** `haversineMiles` /
-`distanceFromDevice` (`src/location.js`)
+`distanceTo` / `anchorEventsTo` (`src/location.js`)
 
-**Why it matters.** Every event shows a "distance from you," and the Map places a
-"you are here" marker — all derived from a Haversine great-circle computation. A bug
-here corrupts the core value proposition (events *near me*) without throwing.
+**Why it matters.** Every event shows a "distance from you," the Map places a "you are
+here" marker, and events are **re-anchored** around the live device coordinate so they
+stay nearby wherever you are. All of this rests on a correct great-circle computation
+and an offset-preserving translation — a bug corrupts "events *near me*" without throwing.
 
 **What it asserts.**
-- Distance from a point to itself is exactly `0`.
-- The function is **symmetric**: `dist(A,B) === dist(B,A)` (to 9 decimals).
-- `distanceFromDevice` to a known landmark (the AGO) lands in a tight, pre-computed
-  band (`1.3–1.7 mi`) — guards against unit errors (km vs mi) or a wrong radius.
-- The result is **rounded to one decimal place**.
+- Distance from a point to itself is exactly `0`; the function is **symmetric**
+  (`dist(A,B) === dist(B,A)` to 9 decimals).
+- `distanceTo` from the anchor to a point ~0.01° north lands in a tight band
+  (`0.5–0.9 mi`) and is **rounded to one decimal** — guards against unit errors
+  (km vs mi) or a wrong radius.
+- `anchorEventsTo` **translates** an event by the `(coord − DEFAULT)` lat/lng delta
+  (exact) and **recomputes** `distance_mi` to a realistic nearby value (`0 < d < 3 mi`),
+  while preserving the event's other fields.
 
 ---
 

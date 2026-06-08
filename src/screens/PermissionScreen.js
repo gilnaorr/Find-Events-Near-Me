@@ -1,7 +1,8 @@
-// PermissionScreen — first-run location request. Mirrors the iOS
-// CLLocationManager.requestWhenInUseAuthorization() flow with a native-style alert.
+// PermissionScreen — first-run location primer. The "Enable location" button fires
+// the real OS permission dialog via expo-location (through the injected onEnable);
+// "Use a city instead" falls back to the default coordinate.
 import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet, Modal } from "react-native";
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenBackground from "../components/ScreenBackground";
 import Glass from "../components/Glass";
@@ -15,10 +16,10 @@ const POINTS = [
   "You can change this in Settings anytime",
 ];
 
-export default function PermissionScreen({ onGranted, onSkip }) {
-  const { t, dark } = useTheme();
+export default function PermissionScreen({ onEnable, onSkip }) {
+  const { t } = useTheme();
   const insets = useSafeAreaInsets();
-  const [showAlert, setShowAlert] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   return (
     <View style={styles.root}>
@@ -51,50 +52,29 @@ export default function PermissionScreen({ onGranted, onSkip }) {
           </Glass>
 
           <Pressable
-            onPress={() => setShowAlert(true)}
-            style={({ pressed }) => [styles.btnAccent, { backgroundColor: t.accent, opacity: pressed ? 0.9 : 1 }]}
+            disabled={busy}
+            onPress={async () => {
+              setBusy(true);
+              try {
+                await onEnable();
+              } finally {
+                setBusy(false);
+              }
+            }}
+            style={({ pressed }) => [styles.btnAccent, { backgroundColor: t.accent, opacity: pressed || busy ? 0.9 : 1 }]}
           >
-            <Text style={[styles.btnAccentText, { color: t.accentInk }]}>Enable location</Text>
+            {busy ? (
+              <ActivityIndicator color={t.accentInk} />
+            ) : (
+              <Text style={[styles.btnAccentText, { color: t.accentInk }]}>Enable location</Text>
+            )}
           </Pressable>
-          <Pressable onPress={onSkip} style={styles.btnLink}>
+          <Pressable onPress={onSkip} disabled={busy} style={styles.btnLink}>
             <Text style={[styles.btnLinkText, { color: t.ink2 }]}>Use a city instead</Text>
           </Pressable>
         </View>
       </View>
-
-      <Modal visible={showAlert} transparent animationType="fade" onRequestClose={() => setShowAlert(false)}>
-        <View style={styles.alertOverlay}>
-          <View style={[styles.alert, { backgroundColor: dark ? "rgba(45,42,38,0.92)" : "rgba(252,251,248,0.92)" }]}>
-            <View style={styles.aBody}>
-              <Text style={[styles.aTitle, { color: t.ink }]}>Allow "Nearby" to use your location?</Text>
-              <Text style={[styles.aMsg, { color: t.ink2 }]}>
-                Your location is used to show nearby events and calculate distances.
-              </Text>
-            </View>
-            <View style={[styles.aActions, { borderTopColor: dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" }]}>
-              <AlertBtn label="Don't Allow" color={t.alertBlue} onPress={() => setShowAlert(false)} border={dark} />
-              <AlertBtn label="While Using" bold color={t.alertBlue} onPress={() => { setShowAlert(false); onGranted("precise"); }} border={dark} />
-              <AlertBtn label="Once" color={t.alertBlue} onPress={() => { setShowAlert(false); onGranted("once"); }} last />
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
-  );
-}
-
-function AlertBtn({ label, bold, color, onPress, last, border }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.aBtn,
-        !last && { borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: border ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" },
-        pressed && { backgroundColor: "rgba(127,127,127,0.12)" },
-      ]}
-    >
-      <Text style={[styles.aBtnText, { color, fontFamily: bold ? fonts.sansSemi : fonts.sans }]}>{label}</Text>
-    </Pressable>
   );
 }
 

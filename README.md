@@ -30,14 +30,16 @@ came with the design prototype and are kept because they make the demo realistic
 - **Light / Dark theme.**
 - **Tweaks panel** — a developer overlay to drive every engineering state (see below);
   not a shipping feature, it exists so the architecture is reviewable.
-- **Map tab** — abstract map with price pins and a "you are here" marker.
+- **Map tab** — a real interactive map (Leaflet + OpenStreetMap in a WebView) centered
+  on your live location, with tappable event price-pins and a "you are here" marker.
 - **Event images** — each event carries an `image_url` rendered via `expo-image`
   (added per review request; the original prototype used striped placeholders).
 
-Location uses the device's **native location API** to position the user and compute
-the distance to each event. For the Expo demo the API's response is mocked with sample
-data (`src/location.js`); that file is the single seam where the live native coordinate
-drops in.
+Location uses the device's **native location API** via `expo-location` (the real OS
+permission prompt + `getCurrentPositionAsync()`; works in Expo Go). Because the events
+are synthetic, they're **re-anchored** around your live coordinate so they stay nearby
+wherever you are (`src/location.js`). If permission is denied, it falls back to a
+default coordinate so the app still renders.
 
 ## Run it
 
@@ -78,7 +80,8 @@ sheet — the same panel from the prototype:
 | Icons        | inline SVG             | `react-native-svg` (`src/icons.js`)           |
 | Maps links   | `window.__toast`       | `Linking.openURL` (Apple / Google / Waze)     |
 | Event images | striped placeholders   | `expo-image` w/ memory+disk cache (`src/components/EventImage.js`) |
-| Location     | `"Mission, SF"` string | native location API (mocked for demo) + Haversine distance (`src/location.js`) |
+| Location     | `"Mission, SF"` string | `expo-location` (real) + Haversine + re-anchor (`src/location.js`) |
+| Map          | abstract SVG streets   | Leaflet/OSM in a `react-native-webview` (`src/components/LeafletMap.js`) |
 | Haptics      | —                      | `expo-haptics` on bookmark toggle             |
 | Colors       | `oklch(...)`           | converted to hex/rgba by `gen-theme.js` → `src/theme.js` |
 
@@ -99,9 +102,13 @@ background refresh runs every 30s while foregrounded (≈30 min in production).
 
 ## Out of scope (matches the original brief)
 
-- Real map tiles (abstract SVG streets stand in — MapKit in production).
-- Live GPS / OS location prompt — the native location API's response is mocked with
-  sample data for the demo, and the in-app permission screen is a simulated alert.
+- Native map SDK — the map is real (Leaflet + OpenStreetMap) but rendered in a WebView
+  so it runs in Expo Go; map tiles need network (the events list still works offline).
+  A native build would use MapKit / Google Maps.
+- Continuous location tracking — one-shot `getCurrentPositionAsync()` on grant, not a
+  live `watchPositionAsync` subscription.
+- Real venues at your location — events are synthetic and re-anchored around your live
+  coordinate, so addresses are illustrative.
 - User-uploaded photos — event images are stock (Unsplash) referenced by URL; there's
   no upload pipeline.
 - Auth, push, payments, analytics, i18n beyond locale date/number formatting.

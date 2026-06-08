@@ -48,8 +48,8 @@ flowchart TD
     App -->|"fetch(online, errorRate)"| API["api.js<br/>network stub"]
     API -->|"events + server_time"| App
     Data["data.js<br/>mock events + image_url"] --> API
-    App -->|"getDeviceLocation()"| Loc["location.js<br/>device location (mocked)"]
-    Loc -->|"distanceFromDevice()"| Data
+    App -->|"getDeviceLocation()"| Loc["location.js<br/>real device location (expo-location)"]
+    Loc -->|"anchorEventsTo()"| Data
     Screens -->|"image_url"| Img["expo-image<br/>memory + disk cache"]
     Img -->|"GET"| CDN[("Image CDN")]
 
@@ -75,7 +75,7 @@ src/
   data.js                      Mock REST payload (the "events DB" seed) + server_time
   db.js                        Persistence: AsyncStorage wrapper (bookmarks + cache + prefs)
   api.js                       fakeFetchEvents network stub + CACHE_TTL_SEC
-  location.js                  Device location (mocked) + Haversine distance
+  location.js                  Real device location (expo-location) + Haversine + re-anchor
   theme.js                     AUTO-GENERATED light/dark palettes + type/radius scales
   oklch.js                     Runtime oklch→hex (per-event placeholder hues)
   icons.js                     Stroke icon set (react-native-svg)
@@ -99,7 +99,8 @@ src/
     PermissionScreen.js        First-run location request (simulated iOS alert)
     NearbyScreen.js            Home: brand, header, filter chips, banners, list
     DetailScreen.js            Hero, fact grid, venue card, maps action sheet, CTA
-    MapScreen.js               Abstract SVG map, price pins, "you are here", card
+    MapScreen.js               Real map (LeafletMap) + price pins, "you are here", card
+    LeafletMap.js (component)  Leaflet/OSM map in a WebView (markers, postMessage)
     SavedScreen.js             Bookmarks list + count chip + empty state
     SettingsScreen.js          Permission/radius/refresh/low-data/cache/notify/diag
     TweaksSheet.js             Developer panel to drive every engineering state
@@ -149,8 +150,8 @@ Two objects flow down to every screen:
 
 `src/data.js` is the **mock REST payload** — the events the server would return,
 each with id, title, category, venue, address, `lat`/`lng`, time, price, capacity,
-tags, and an `image_url`. Distances are **derived** from the device location at load
-(`distanceFromDevice`), not hardcoded.
+tags, and an `image_url`. `distance_mi` is **not** stored here — it's computed at
+runtime against the live device coordinate by `anchorEventsTo` (see §6).
 
 `src/db.js` is the **persistence layer** (the production app's Core Data). It wraps
 `@react-native-async-storage/async-storage` with `load()`, `save()`, `clearCache()`,
@@ -218,18 +219,20 @@ truth they're seeing. Supporting behaviors, all in `App.js`:
 
 ## 6. Location & distance
 
-`src/location.js` is the **device-location seam**. The app uses the device's native
-location API to position the user and compute the distance to each event; for the
-Expo demo that API response is **mocked** with a fixed coordinate, and
-`getDeviceLocation()` is the single function to replace with a live
-`expo-location`/`CLLocationManager` read. `haversineMiles()` /
-`distanceFromDevice()` compute great-circle distance (what `CLLocation.distance(from:)`
-gives natively), used to derive each event's `distance_mi` and to place the "you are
-here" marker on the map.
+`src/location.js` reads the **real device location** via **`expo-location`**
+(`getDeviceLocation()` → `requestForegroundPermissionsAsync()` +
+`getCurrentPositionAsync()`; works in Expo Go). On denial/error it falls back to
+`DEFAULT_LOCATION` (mode `"city"`) so the app still renders.
 
-`PermissionScreen` reproduces the first-run native location prompt (a simulated iOS
-alert with While-Using / Once / Don't-Allow); the chosen mode is stored in
-`prefs.locationMode` and surfaced in Settings.
+Because the events are synthetic, `anchorEventsTo(events, coord)` **re-anchors** them
+around the live coordinate — translating each event's offset from `DEFAULT_LOCATION`
+onto the device position so they stay "near me" wherever you are — and recomputes
+`distance_mi` with `haversineMiles` / `distanceTo`. `App.js` holds the live `coords`
+and derives the displayed events with a `useMemo`.
+
+`PermissionScreen` is a **primer**: its "Enable location" button calls the injected
+`onEnable`, which fires the **real OS permission dialog**; "Use a city instead" takes
+the fallback. The resulting mode is stored in `prefs.locationMode` and shown in Settings.
 
 ---
 
@@ -344,12 +347,15 @@ architecture reads the same:
 | Network        | `api.js` stub                            | `URLSession` + ETag / If-None-Match    |
 | Cache          | stale-while-revalidate, 15m TTL          | same policy in the repository          |
 | Images         | `expo-image` mem+disk cache              | `NSCache` + `URLCache`                  |
-| Location       | `location.js` (mocked) + Haversine       | `CLLocationManager` + `CLLocation`     |
+| Location       | `expo-location` + Haversine + re-anchor  | `CLLocationManager` + `CLLocation`     |
+| Map            | Leaflet/OSM in a `WebView`               | `MapKit` (`Map`/`MKMapView`)           |
 | Background     | 30 s foreground interval                 | `BGAppRefreshTask` (~30 min)           |
 | Haptics/Maps   | `expo-haptics` / `Linking`               | `UIImpactFeedbackGenerator` / `UIApplication.open` |
 
 ## 12. Out of scope (by design)
 
-Real map tiles (abstract SVG stands in), live GPS / OS permission prompt (mocked),
+Native map SDK (uses a Leaflet/OSM WebView so it runs in Expo Go; map tiles need
+network), continuous position tracking (one-shot fetch, not `watchPositionAsync`),
 user-uploaded photos (stock images by URL), auth, push, payments, analytics, and
-i18n beyond locale date/number formatting.
+i18n beyond locale date/number formatting. Because the events are synthetic, they're
+re-anchored around the live coordinate rather than being real venues at your location.

@@ -21,7 +21,13 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Find Events Near Me uses your location to show events near you and calculate distance."
+        }
+      ]
     ]
   }
 }
