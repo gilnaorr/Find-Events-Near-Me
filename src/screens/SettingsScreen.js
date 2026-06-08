@@ -1,7 +1,7 @@
 // SettingsScreen — permission state, radius, bg-refresh / low-data toggles,
 // cache size + age, clear-cache, notifications, diagnostics.
-import React from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, Pressable, TextInput, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Screen from "../components/Screen";
 import Glass from "../components/Glass";
@@ -15,10 +15,35 @@ export default function SettingsScreen({ state, actions, tweaks }) {
   const insets = useSafeAreaInsets();
   const cacheKB = (allEvents.length * 1.4 + bookmarks.size * 0.2).toFixed(1);
 
-  const RADIUS_PRESETS = [1, 2, 5, 10, 25, 40];
-  const cycleRadius = () => {
-    const i = RADIUS_PRESETS.indexOf(radiusMi);
-    actions.setRadius(RADIUS_PRESETS[(i + 1) % RADIUS_PRESETS.length] ?? 40);
+  // Editable search radius (whole miles, 1–2500). Valid input commits live; invalid
+  // input shows an inline error and is reverted on blur.
+  const RADIUS_MIN = 1;
+  const RADIUS_MAX = 2500;
+  const [radiusDraft, setRadiusDraft] = useState(String(radiusMi));
+  const [radiusError, setRadiusError] = useState(null);
+
+  const validateRadius = (text) => {
+    const s = text.trim();
+    if (s === "") return { error: "Enter a radius (1–2500)", value: null };
+    if (!/^\d+$/.test(s)) return { error: "Numbers only", value: null };
+    const n = parseInt(s, 10);
+    if (n < RADIUS_MIN) return { error: `Minimum is ${RADIUS_MIN} mile`, value: null };
+    if (n > RADIUS_MAX) return { error: `Maximum is ${RADIUS_MAX} miles`, value: null };
+    return { error: null, value: n };
+  };
+
+  const onChangeRadius = (text) => {
+    setRadiusDraft(text);
+    const { error, value } = validateRadius(text);
+    setRadiusError(error);
+    if (value != null) actions.setRadius(value); // commit valid input immediately
+  };
+
+  const onBlurRadius = () => {
+    if (validateRadius(radiusDraft).value == null) {
+      setRadiusDraft(String(radiusMi)); // revert bad/empty input to the last valid value
+      setRadiusError(null);
+    }
   };
 
   const permSub =
@@ -40,10 +65,29 @@ export default function SettingsScreen({ state, actions, tweaks }) {
           <Row title="Permission" sub={permSub}>
             <Text style={[styles.value, { color: t.accent }]}>Change</Text>
           </Row>
-          <Row title="Search radius" sub="Events within this many miles · tap to change" last>
-            <Pressable onPress={cycleRadius} hitSlop={10}>
-              <Text style={[styles.value, { color: t.accent, fontFamily: fonts.sansSemi }]}>{radiusMi} mi</Text>
-            </Pressable>
+          <Row
+            title="Search radius"
+            sub={radiusError || "Events within this many miles (1–2500)"}
+            subColor={radiusError ? t.danger : undefined}
+            last
+          >
+            <View style={styles.radiusBox}>
+              <TextInput
+                value={radiusDraft}
+                onChangeText={onChangeRadius}
+                onBlur={onBlurRadius}
+                keyboardType="number-pad"
+                maxLength={4}
+                selectTextOnFocus
+                returnKeyType="done"
+                accessibilityLabel="Search radius in miles"
+                style={[
+                  styles.radiusInput,
+                  { color: radiusError ? t.danger : t.accent, borderColor: radiusError ? t.danger : t.hairlineStrong },
+                ]}
+              />
+              <Text style={[styles.value, { color: t.ink3 }]}>mi</Text>
+            </View>
           </Row>
         </Section>
 
@@ -95,13 +139,13 @@ function Section({ title, children }) {
   );
 }
 
-function Row({ title, sub, children, titleColor, last }) {
+function Row({ title, sub, children, titleColor, subColor, last }) {
   const { t } = useTheme();
   return (
     <View style={[styles.row, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.glassBorderBottom }]}>
       <View style={{ flex: 1 }}>
         <Text style={[styles.rowTitle, { color: titleColor || t.ink }]}>{title}</Text>
-        {sub ? <Text style={[styles.rowSub, { color: t.ink3 }]}>{sub}</Text> : null}
+        {sub ? <Text style={[styles.rowSub, { color: subColor || t.ink3 }]}>{sub}</Text> : null}
       </View>
       {children}
     </View>
@@ -119,4 +163,15 @@ const styles = StyleSheet.create({
   rowTitle: { fontSize: 15, fontFamily: fonts.sans },
   rowSub: { fontSize: 12, marginTop: 2 },
   value: { fontSize: 14, fontFamily: fonts.sans },
+  radiusBox: { flexDirection: "row", alignItems: "center", gap: 6 },
+  radiusInput: {
+    minWidth: 56,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 8,
+    textAlign: "right",
+    fontSize: 15,
+    fontFamily: fonts.sansSemi,
+  },
 });
