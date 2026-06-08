@@ -71,7 +71,7 @@ export default function SettingsScreen({ state, actions, tweaks }) {
         </Section>
 
         <Section title="Diagnostics">
-          <Row title="Network" sub="Simulated by Tweaks panel">
+          <Row title="Network" sub="Live device connectivity · override in Tweaks">
             <Text style={[styles.value, { color: online ? t.positive : t.danger }]}>{online ? "Online" : "Offline"}</Text>
           </Row>
           <Row title="App version" sub={`build 26.05.27 · ${tweaks.theme}`} last>

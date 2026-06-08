@@ -6,6 +6,7 @@ import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Haptics from "expo-haptics";
+import { useNetworkState } from "expo-network";
 import {
   useFonts,
   Inter_400Regular,
@@ -80,7 +81,13 @@ function Shell() {
   const [toast, setToast] = useState(null);
   const [tweaksOpen, setTweaksOpen] = useState(false);
 
-  const online = tweaks.connection !== "offline";
+  // Real device connectivity (expo-network). `isInternetReachable` is the honest
+  // signal but is undefined until the first probe resolves, so fall back to
+  // `isConnected`, then to online. The Tweaks "Connection: offline" forces offline
+  // for demos; otherwise the chip/banner reflect the actual device network.
+  const net = useNetworkState();
+  const deviceOnline = net.isInternetReachable ?? net.isConnected ?? true;
+  const online = tweaks.connection === "offline" ? false : deviceOnline;
   const errorRate = tweaks.errorMode === "always" ? 1 : tweaks.errorMode === "intermittent" ? 0.5 : 0;
 
   const doRefresh = useCallback(async () => {
@@ -88,14 +95,14 @@ function Shell() {
     setRefreshing(true);
     setFetchError(null);
     try {
-      const res = await fakeFetchEvents({ online: tweaks.connection !== "offline", errorRate });
+      const res = await fakeFetchEvents({ online, errorRate });
       setCache({ events: res.events, fetched_at: Date.now() / 1000 });
     } catch (e) {
       setFetchError(e.message);
     } finally {
       setRefreshing(false);
     }
-  }, [tweaks.connection, errorRate, refreshing]);
+  }, [online, errorRate, refreshing]);
 
   // Hydrate from the "DB", then seed cache per the cache-on-start tweak.
   useEffect(() => {
