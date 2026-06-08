@@ -15,16 +15,16 @@ export default function SettingsScreen({ state, actions, tweaks }) {
   const insets = useSafeAreaInsets();
   const cacheKB = (allEvents.length * 1.4 + bookmarks.size * 0.2).toFixed(1);
 
-  // Editable search radius (whole miles, 1–2500). Valid input commits live; invalid
+  // Editable search radius (whole miles, 1–250). Valid input commits live; invalid
   // input shows an inline error and is reverted on blur.
   const RADIUS_MIN = 1;
-  const RADIUS_MAX = 2500;
+  const RADIUS_MAX = 250;
   const [radiusDraft, setRadiusDraft] = useState(String(radiusMi));
   const [radiusError, setRadiusError] = useState(null);
 
   const validateRadius = (text) => {
     const s = text.trim();
-    if (s === "") return { error: "Enter a radius (1–2500)", value: null };
+    if (s === "") return { error: `Enter a radius (${RADIUS_MIN}–${RADIUS_MAX})`, value: null };
     if (!/^\d+$/.test(s)) return { error: "Numbers only", value: null };
     const n = parseInt(s, 10);
     if (n < RADIUS_MIN) return { error: `Minimum is ${RADIUS_MIN} mile`, value: null };
@@ -67,7 +67,7 @@ export default function SettingsScreen({ state, actions, tweaks }) {
           </Row>
           <Row
             title="Search radius"
-            sub={radiusError || "Events within this many miles (1–2500)"}
+            sub={radiusError || `Events within this many miles (${RADIUS_MIN}–${RADIUS_MAX})`}
             subColor={radiusError ? t.danger : undefined}
             last
           >
@@ -77,7 +77,7 @@ export default function SettingsScreen({ state, actions, tweaks }) {
                 onChangeText={onChangeRadius}
                 onBlur={onBlurRadius}
                 keyboardType="number-pad"
-                maxLength={4}
+                maxLength={3}
                 selectTextOnFocus
                 returnKeyType="done"
                 accessibilityLabel="Search radius in miles"

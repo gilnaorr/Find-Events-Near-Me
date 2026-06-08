@@ -27,7 +27,7 @@ came with the design prototype and are kept because they make the demo realistic
 - **Category filter** — horizontal chips on the Search Event (Nearby) screen (All /
   Live music / Market / Workshop / Sports / Comedy / Art) filter the list client-side.
 - **Search radius** — events are filtered to within a radius of the device (default
-  40 mi). Edit it in **Settings** (a validated numeric input: whole miles, 1–2500,
+  40 mi). Edit it in **Settings** (a validated numeric input: whole miles, 1–250,
   with an inline error for anything else); the list and map filter live. Saved/detail
   ignore the radius.
 - **Freshness chip** — header pill showing cache state + age (Live · 2m / Stale / Offline);

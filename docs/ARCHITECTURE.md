@@ -116,7 +116,7 @@ is just state.
 **Persistent state** (survives restarts, written to AsyncStorage):
 - `bookmarks` — a `Set` of saved event ids.
 - `prefs` — `{ lowDataMode, bgRefresh, notify, locationMode, radiusMi }` (`radiusMi`
-  is the search radius — default 40, editable in Settings via a validated 1–2500 input).
+  is the search radius — default 40, editable in Settings via a validated 1–250 input).
 - `cache` — `{ events, fetched_at }` (the cached API response + when it landed).
 
 **Ephemeral state** (in-memory only):
