@@ -116,7 +116,7 @@ export default function DetailScreen({ event, saved, actions, showToast }) {
       >
         <Glass strong radius={999} style={{ flex: 1 }} contentStyle={styles.ctaGlassBtn}>
           <Pressable onPress={toggle} style={styles.ctaInner}>
-            {saved ? <Icons.BookmarkFill size={16} color={t.ink} /> : <Icons.Bookmark size={16} color={t.ink} />}
+            {saved ? <Icons.BookmarkFill size={16} color={t.accent} /> : <Icons.Bookmark size={16} color={t.ink} />}
             <Text style={[styles.ctaText, { color: t.ink }]}>{saved ? "Saved" : "Save"}</Text>
           </Pressable>
         </Glass>
