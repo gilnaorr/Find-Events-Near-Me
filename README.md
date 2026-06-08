@@ -16,7 +16,10 @@ so it runs on a real device via Expo.
 
 ## Features
 
-Core (from the brief): list nearby events, bookmark them ("Saved" tab, persisted to
+The four bottom tabs are **Search Event**, **Map**, **My Events**, and
+**Profile settings**.
+
+Core (from the brief): list nearby events, bookmark them ("My Events" tab, persisted to
 the local DB), event detail, distance-to-event from the device location, deep-link to
 a maps app for directions, image + API-response caching, background refresh, graceful
 network-failure handling.
@@ -24,12 +27,12 @@ network-failure handling.
 **Beyond the initial brief** — these weren't in the original written description; most
 came with the design prototype and are kept because they make the demo realistic:
 
-- **Category filter** — horizontal chips on the Search Event (Nearby) screen (All /
+- **Category filter** — horizontal chips on the **Search Event** screen (All /
   Live music / Market / Workshop / Sports / Comedy / Art) filter the list client-side.
 - **Search radius** — events are filtered to within a radius of the device (default
-  40 mi). Edit it in **Settings** (a validated numeric input: whole miles, 1–250,
-  with an inline error for anything else); the list and map filter live. Saved/detail
-  ignore the radius.
+  40 mi). Edit it in **Profile settings** (a validated numeric input: whole miles,
+  1–250, with an inline error for anything else); the list and map filter live.
+  **My Events**/detail ignore the radius.
 - **Freshness chip** — header pill showing cache state + age (Live · 2m / Stale / Offline);
   the Offline state reflects **real device connectivity** via `@react-native-community/netinfo`.
 - **Light / Dark theme.**
