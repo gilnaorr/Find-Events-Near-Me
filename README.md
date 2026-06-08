@@ -27,7 +27,7 @@ came with the design prototype and are kept because they make the demo realistic
 - **Category filter** — horizontal chips on the Nearby screen (All / Live music /
   Market / Workshop / Sports / Comedy / Art) filter the list client-side.
 - **Freshness chip** — header pill showing cache state + age (Live · 2m / Stale / Offline);
-  the Offline state reflects **real device connectivity** via `expo-network`.
+  the Offline state reflects **real device connectivity** via `@react-native-community/netinfo`.
 - **Light / Dark theme.**
 - **Tweaks panel** — a developer overlay to drive every engineering state (see below);
   not a shipping feature, it exists so the architecture is reviewable.
@@ -61,7 +61,7 @@ sheet — the same panel from the prototype:
 | Tweak             | Simulates                                                        |
 |-------------------|-----------------------------------------------------------------|
 | Theme             | Light / Dark.                                                   |
-| Connection        | Online uses **real** device connectivity (`expo-network`); Offline forces it for demos. |
+| Connection        | Online uses **real** device connectivity (NetInfo); Offline forces it for demos. |
 | API errors        | Off / Intermittent (50%) / Always — exercises the retry path.   |
 | Cache on start    | Fresh / Stale / Empty — proves TTL + cold-start UX.             |
 | Data mode         | Full / Low — gates image decoding.                              |

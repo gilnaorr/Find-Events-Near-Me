@@ -6,7 +6,7 @@ import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Haptics from "expo-haptics";
-import { useNetworkState } from "expo-network";
+import { useNetInfo } from "@react-native-community/netinfo";
 import {
   useFonts,
   Inter_400Regular,
@@ -81,12 +81,13 @@ function Shell() {
   const [toast, setToast] = useState(null);
   const [tweaksOpen, setTweaksOpen] = useState(false);
 
-  // Real device connectivity (expo-network). `isInternetReachable` is the honest
-  // signal but is undefined until the first probe resolves, so fall back to
-  // `isConnected`, then to online. The Tweaks "Connection: offline" forces offline
-  // for demos; otherwise the chip/banner reflect the actual device network.
-  const net = useNetworkState();
-  const deviceOnline = net.isInternetReachable ?? net.isConnected ?? true;
+  // Real device connectivity via NetInfo (reliable real-time listener + active
+  // internet-reachability probe). Offline if EITHER signal is explicitly false
+  // (e.g. airplane mode, or connected to Wi-Fi with no internet). Unknown (null,
+  // before the first probe) is treated as online. Tweaks "Connection: offline"
+  // forces offline for demos.
+  const net = useNetInfo();
+  const deviceOnline = (net.isConnected ?? true) && (net.isInternetReachable ?? true);
   const online = tweaks.connection === "offline" ? false : deviceOnline;
   const errorRate = tweaks.errorMode === "always" ? 1 : tweaks.errorMode === "intermittent" ? 0.5 : 0;
 

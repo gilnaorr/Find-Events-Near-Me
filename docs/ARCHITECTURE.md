@@ -272,7 +272,7 @@ runtime.
 `TweaksSheet` is a **developer overlay**, not a shipping feature. Opened by the
 floating sliders button, it drives every architectural state so the app is reviewable:
 theme, connection (Offline *forces* offline; Online uses the real device network via
-`expo-network`), API errors (off/intermittent/always), cache-on-start
+NetInfo), API errors (off/intermittent/always), cache-on-start
 (fresh/stale/empty), data mode (full/low), a permission-flow replay, and a
 clear-cache-and-bookmarks action. Each control mutates `tweaks`/`prefs` in `App.js`,
 which the policy code already reacts to.
@@ -347,7 +347,7 @@ architecture reads the same:
 | Orchestration  | `App.js` state + policy                  | ViewModels (MVVM) + Repositories       |
 | Local DB       | `db.js` (AsyncStorage)                   | Core Data (cached vs bookmarked stores)|
 | Network        | `api.js` stub                            | `URLSession` + ETag / If-None-Match    |
-| Connectivity   | `expo-network` (real online/offline)     | `NWPathMonitor` (Network.framework)    |
+| Connectivity   | NetInfo (real online/offline + reachability) | `NWPathMonitor` (Network.framework) |
 | Cache          | stale-while-revalidate, 15m TTL          | same policy in the repository          |
 | Images         | `expo-image` mem+disk cache              | `NSCache` + `URLCache`                  |
 | Location       | `expo-location` + Haversine + re-anchor  | `CLLocationManager` + `CLLocation`     |
